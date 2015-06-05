@@ -354,7 +354,7 @@
 </xsl:template>
 
 <!-- Normalize space in indexterms -->
-<xsl:template match="indexterm//text()">
+<xsl:template match="indexterm/text() | indexterm/*/text()">
   <xsl:value-of select="normalize-space(.)"/>
 </xsl:template>
 
@@ -761,17 +761,20 @@ ____
 
 <xsl:template match="emphasis[@role='bold']|emphasis[@role='strong']">**<xsl:apply-templates />**</xsl:template>
 
-  <xsl:template match="filename">__<xsl:if test="contains(., '~') or contains(., '_')">$$</xsl:if><xsl:apply-templates/><xsl:if test="contains(., '~') or contains(., '_')">$$</xsl:if>__</xsl:template>
-  <!-- Normalize-space() on text node below includes extra handling for child elements of filename, to add needed spaces back in. (They're removed by normalize-space(), which normalizes the two text nodes separately.) -->
-  <xsl:template match="filename/text()">
-    <xsl:if test="preceding-sibling::* and (starts-with(.,' ') or starts-with(.,'&#10;'))">
-      <xsl:text> </xsl:text>
-    </xsl:if>
-    <xsl:value-of select="normalize-space(replace(., '([\+])', '\\$1', 'm'))"/>
-    <xsl:if test="following-sibling::* and (substring(.,string-length(.))=' ' or substring(.,string-length(.))='&#10;')">
-      <xsl:text> </xsl:text>
-    </xsl:if>
-  </xsl:template>
+<xsl:template match="filename">__<xsl:if test="contains(., '~') or contains(., '_')">$$</xsl:if><xsl:apply-templates/><xsl:if test="contains(., '~') or contains(., '_')">$$</xsl:if>__</xsl:template>
+
+<!-- Normalize-space() on text node below includes extra handling for child elements of
+     filename, to add needed spaces back in. (They're removed by normalize-space(), which
+     normalizes the two text nodes separately.) -->
+<xsl:template match="filename/text()">
+  <xsl:if test="preceding-sibling::* and (starts-with(.,' ') or starts-with(.,'&#10;'))">
+    <xsl:text> </xsl:text>
+  </xsl:if>
+  <xsl:value-of select="normalize-space(replace(., '([\+])', '\\$1', 'm'))"/>
+  <xsl:if test="following-sibling::* and (substring(.,string-length(.))=' ' or substring(.,string-length(.))='&#10;')">
+    <xsl:text> </xsl:text>
+  </xsl:if>
+</xsl:template>
 
   <xsl:template match="emphasis">__<xsl:if test="contains(., '~') or contains(., '_')">$$</xsl:if><xsl:apply-templates/><xsl:if test="contains(., '~') or contains(., '_')">$$</xsl:if>__</xsl:template>
   <!-- Normalize-space() on text node below includes extra handling for child elements of emphasis, to add needed spaces back in. (They're removed by normalize-space(), which normalizes the two text nodes separately.) -->
@@ -828,37 +831,92 @@ ____
     </xsl:if>
   </xsl:template>
   
-<xsl:template match="superscript">^<xsl:apply-templates />^</xsl:template>
-  <!-- Normalize-space() on text node below includes extra handling for child elements of superscript, to add needed spaces back in. (They're removed by normalize-space(), which normalizes the two text nodes separately.) -->
-  <xsl:template match="superscript/text()">
-    <xsl:if test="preceding-sibling::* and (starts-with(.,' ') or starts-with(.,'&#10;'))">
-      <xsl:text> </xsl:text>
-    </xsl:if>
+<xsl:template match="superscript">
+  <xsl:text>^</xsl:text>
+  <xsl:apply-templates />
+  <xsl:text>^</xsl:text>
+</xsl:template>
+
+<!-- Normalize-space() on text node below includes extra handling for child elements of
+     superscript, to add needed spaces back in. (They're removed by normalize-space(), which
+     normalizes the two text nodes separately.) -->
+
+<xsl:template match="superscript/text()">
+  <xsl:if test="preceding-sibling::* and (starts-with(.,' ') or starts-with(.,'&#10;'))">
+    <xsl:text> </xsl:text>
+  </xsl:if>
+  <xsl:value-of select="normalize-space(.)"/>
+  <xsl:if test="following-sibling::* and (substring(.,string-length(.))=' ' or substring(.,string-length(.))='&#10;')">
+    <xsl:text> </xsl:text>
+  </xsl:if>
+</xsl:template>
+
+<xsl:template match="subscript">
+  <xsl:text>~</xsl:text>
+  <xsl:apply-templates />
+  <xsl:text>~</xsl:text>
+</xsl:template>
+
+<!-- Normalize-space() on text node below includes extra handling for child elements of
+     subscript, to add needed spaces back in. (They're removed by normalize-space(), which
+     normalizes the two text nodes separately.) -->
+<xsl:template match="subscript/text()">
+  <xsl:if test="preceding-sibling::* and (starts-with(.,' ') or starts-with(.,'&#10;'))">
+    <xsl:text> </xsl:text>
+  </xsl:if>
+  <xsl:value-of select="normalize-space(.)"/>
+  <xsl:if test="following-sibling::* and (substring(.,string-length(.))=' ' or substring(.,string-length(.))='&#10;')">
+    <xsl:text> </xsl:text>
+  </xsl:if>
+</xsl:template>
+
+<xsl:template match="ulink">
+  <xsl:text>link:$$</xsl:text>
+  <xsl:value-of select="@url" />
+  <xsl:text>$$[</xsl:text>
+  <xsl:apply-templates/>
+  <xsl:text>]</xsl:text>
+</xsl:template>
+
+<xsl:template match="email">
+  <xsl:text>pass:[</xsl:text>
+  <xsl:element name="email">
     <xsl:value-of select="normalize-space(.)"/>
-    <xsl:if test="following-sibling::* and (substring(.,string-length(.))=' ' or substring(.,string-length(.))='&#10;')">
-      <xsl:text> </xsl:text>
-    </xsl:if>
-  </xsl:template>
+  </xsl:element>
+  <xsl:text>]</xsl:text>
+</xsl:template>
 
-<xsl:template match="subscript">~<xsl:apply-templates />~</xsl:template>
-  <!-- Normalize-space() on text node below includes extra handling for child elements of subscript, to add needed spaces back in. (They're removed by normalize-space(), which normalizes the two text nodes separately.) -->
-  <xsl:template match="subscript/text()">
-    <xsl:if test="preceding-sibling::* and (starts-with(.,' ') or starts-with(.,'&#10;'))">
-      <xsl:text> </xsl:text>
-    </xsl:if>
-    <xsl:value-of select="normalize-space(.)"/>
-    <xsl:if test="following-sibling::* and (substring(.,string-length(.))=' ' or substring(.,string-length(.))='&#10;')">
-      <xsl:text> </xsl:text>
-    </xsl:if>
-  </xsl:template>
+<xsl:template match="xref">
+  <xsl:text>&#xE801;&#xE801;</xsl:text>
+  <xsl:value-of select="@linkend" />
+  <xsl:text>&#xE802;&#xE802;</xsl:text>
+</xsl:template>
 
-<xsl:template match="ulink">link:$$<xsl:value-of select="@url" />$$[<xsl:apply-templates/>]</xsl:template>
+<xsl:template match="link" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <xsl:choose>
+    <!-- Hyperlink -->
+    <xsl:when test="@xlink:href">
+      <xsl:if test="@xlink:href != text()">
+        <xsl:text>link:</xsl:text>
+      </xsl:if>
+      <xsl:value-of select="@xlink:href"/>
+      <xsl:if test="@xlink:href != text()">
+        <xsl:text>[</xsl:text>
+        <xsl:value-of select="text()"/>
+        <xsl:text>]</xsl:text>
+      </xsl:if>
+    </xsl:when>
 
-  <xsl:template match="email"><xsl:text>pass:[</xsl:text><xsl:element name="email"><xsl:value-of select="normalize-space(.)"/></xsl:element><xsl:text>]</xsl:text></xsl:template>
-
-<xsl:template match="xref">&#xE801;&#xE801;<xsl:value-of select="@linkend" />&#xE802;&#xE802;</xsl:template>
-
-<xsl:template match="link">&#xE801;&#xE801;<xsl:value-of select="@linkend" />,<xsl:value-of select="."/>&#xE802;&#xE802;</xsl:template>
+    <!-- AsciiDoc link -->
+    <xsl:otherwise>
+      <xsl:text>&#xE801;&#xE801;</xsl:text>
+      <xsl:value-of select="@linkend" />
+      <xsl:text>,</xsl:text>
+      <xsl:value-of select="."/>
+      <xsl:text>&#xE802;&#xE802;</xsl:text>
+    </xsl:otherwise>
+  </xsl:choose>
+</xsl:template>
 <!-- END INLINE MARKUP HANDLING -->
 
 <xsl:template match="variablelist">
@@ -890,24 +948,30 @@ ____
   </xsl:choose>
 </xsl:template>
 
-<xsl:template match="itemizedlist">
-<xsl:call-template name="process-id"/>
-<xsl:if test="@spacing">
-[options="<xsl:value-of select="@spacing"/>"]
-</xsl:if>
-<xsl:for-each select="listitem">
-* <xsl:apply-templates/>
-</xsl:for-each>
-</xsl:template>
+<!-- Lists -->
+<xsl:template match="itemizedlist | orderedlist">
+  <xsl:call-template name="process-id"/>
 
-<xsl:template match="orderedlist">
-<xsl:call-template name="process-id"/>
-<xsl:if test="@spacing">
-[options="<xsl:value-of select="@spacing"/>"]
-</xsl:if>
-<xsl:for-each select="listitem">
-. <xsl:apply-templates/>
-</xsl:for-each>
+  <!-- Optional list style options -->
+  <xsl:if test="@spacing">
+    <xsl:text>[options="</xsl:text>
+    <xsl:value-of select="@spacing"/>
+    <xsl:text>"]&#xa;</xsl:text>
+  </xsl:if>
+
+  <xsl:for-each select="listitem">
+    <xsl:choose>
+      <xsl:when test="parent::itemizedlist">
+        <xsl:text>* </xsl:text>
+      </xsl:when>
+      <xsl:when test="parent::orderedlist">
+        <xsl:text>. </xsl:text>
+      </xsl:when>
+    </xsl:choose>
+    <xsl:apply-templates/>
+    <xsl:text>&#xa;</xsl:text>
+  </xsl:for-each>
+  <xsl:text>&#xa;</xsl:text>
 </xsl:template>
 
 <xsl:template match="simplelist">
@@ -920,28 +984,70 @@ ____
 <xsl:value-of select="util:carriage-returns(2)"/>
 </xsl:template>
 
+<!-- ======================================================================= -->
+<!--                                                                         -->
+<!-- Figures                                                                 -->
+<!--                                                                         -->
+<!-- ======================================================================= -->
+
 <!-- figure -->
-<xsl:template match="figure">
+<xsl:template match="figure | informalfigure">
+  <!-- In lists -->
   <xsl:if test="ancestor::listitem and preceding-sibling::element()">
     <xsl:text>+</xsl:text><xsl:value-of select="util:carriage-returns(1)"/>
   </xsl:if>
+
   <xsl:call-template name="process-id"/>
-  <xsl:text>.</xsl:text>
-  <xsl:apply-templates select="title"/>
-  <xsl:text>&#xa;image::</xsl:text><xsl:value-of select="mediaobject/imageobject[@role='web' or @role='html']/imagedata/@fileref"/>[]
+
+  <!-- Only (normal formal) figures have a title -->
+  <xsl:if test="self::figure">
+    <xsl:text>.</xsl:text>
+    <xsl:apply-templates select="title"/>
+    <xsl:text>&#xa;</xsl:text>
+  </xsl:if>
+
+  <xsl:text>image::</xsl:text>
+
+  <!-- Refer the image node.
+       Here we need to select only one of the imageobjects;
+       prefer ones with fo (PDF) role, as they are presumably bigger -->
+  <xsl:variable name="imagenode">
+    <xsl:choose>
+      <xsl:when test="mediaobject/imageobject[@role='fo']">
+        <xsl:copy-of select="mediaobject/imageobject[@role='fo']/*"/>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:copy-of select="mediaobject/imageobject[1]/*"/>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:variable>
+
+  <xsl:value-of select="$imagenode/imagedata/@fileref"/>
+
+  <xsl:variable name="scale">
+    <xsl:value-of select="$imagenode/imagedata/@scale"/>
+  </xsl:variable>
+
+  <!-- Image options: scale -->
+  <!-- Alt text or link are not supported -->
+  <xsl:text>[</xsl:text>
+  <xsl:if test="exists($scale)">
+    <xsl:text>, </xsl:text>
+    <xsl:value-of select="$scale"/>
+    <xsl:text>%, </xsl:text>
+    <xsl:value-of select="$scale"/>
+    <xsl:text>%</xsl:text>
+  </xsl:if>
+  <xsl:text>]&#xa;</xsl:text>
+
   <xsl:choose>
+    <!-- In lists -->
     <xsl:when test="ancestor::listitem and following-sibling::element()"/>
+
     <xsl:otherwise>
       <xsl:value-of select="util:carriage-returns(1)"/>
     </xsl:otherwise>
   </xsl:choose>
-</xsl:template>
-
-<xsl:template match="informalfigure">
-<xsl:value-of select="util:carriage-returns(1)"/>
-<xsl:call-template name="process-id"/>
-image::<xsl:value-of select="mediaobject/imageobject[@role='web']/imagedata/@fileref"/>[]
-<xsl:value-of select="util:carriage-returns(1)"/>
 </xsl:template>
 
 <xsl:template match="inlinemediaobject">image:<xsl:value-of select="imageobject[@role='web']/imagedata/@fileref"/>[]</xsl:template>
@@ -952,7 +1058,12 @@ image::<xsl:value-of select="mediaobject/imageobject[@role='web']/imagedata/@fil
 ....
 </xsl:template>
 
-<!-- BEGIN EQUATION HANDLING -->
+<!-- ======================================================================= -->
+<!--                                                                         -->
+<!-- Equations                                                               -->
+<!--                                                                         -->
+<!-- ======================================================================= -->
+
 <xsl:template match="equation">
 <xsl:call-template name="process-id"/>
 <xsl:choose>
@@ -1302,7 +1413,7 @@ pass:[<xsl:copy-of select="."/>]
           <xsl:if test="ancestor::listitem and preceding-sibling::element()">
             <xsl:text>+</xsl:text><xsl:value-of select="util:carriage-returns(1)"/>
           </xsl:if>
-          <xsl:text>&#xa;++++++++++++++++++++++++++++++++++++++&#xa;</xsl:text>
+          <xsl:text>++++++++++++++++++++++++++++++++++++++&#xa;</xsl:text>
           <xsl:copy-of select="."/>
           <xsl:text>&#xa;++++++++++++++++++++++++++++++++++++++&#xa;&#xa;</xsl:text>
         </xsl:when>
@@ -1313,14 +1424,16 @@ pass:[<xsl:copy-of select="."/>]
             <xsl:text>+</xsl:text>
             <xsl:value-of select="util:carriage-returns(1)"/>
           </xsl:if>
-          <xsl:text>&#xa;++++++++++++++++++++++++++++++++++++++&#xa;</xsl:text>
+          <xsl:text>++++++++++++++++++++++++++++++++++++++&#xa;</xsl:text>
           <xsl:copy-of select="."/>
           <xsl:text>&#xa;++++++++++++++++++++++++++++++++++++++&#xa;&#xa;</xsl:text>
         </xsl:when>
 
         <!-- Output Asciidoc -->
         <xsl:otherwise>
+          <!-- TODO Removing this newline seems to cause some odd trouble. -->
           <xsl:value-of select="util:carriage-returns(1)"/>
+
           <xsl:if test="ancestor::listitem and preceding-sibling::element()">
             <xsl:text>+</xsl:text><xsl:value-of select="util:carriage-returns(1)"/>
           </xsl:if>
@@ -1556,7 +1669,8 @@ pass:[<xsl:copy-of select="."/>]
 <xsl:template name="process-id">
   <xsl:if test="@xml:id or @id">
     <xsl:text xml:space="preserve">[[</xsl:text>
-    <xsl:value-of select="@xml:id or @id"/>
+    <xsl:value-of select="@xml:id"/> <!-- Assume only one to exist -->
+    <xsl:value-of select="id"/>
     <xsl:text xml:space="preserve">]]&#10;</xsl:text>
   </xsl:if>
 </xsl:template>
