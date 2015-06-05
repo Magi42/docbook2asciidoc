@@ -1,7 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <xsl:stylesheet version="2.0"
  xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
  xmlns:xs="http://www.w3.org/2001/XMLSchema"
  xmlns:util="http://github.com/oreillymedia/docbook2asciidoc/"
+ xpath-default-namespace="http://docbook.org/ns/docbook"
  exclude-result-prefixes="util"
  >
   
@@ -106,45 +108,82 @@
   </xsl:choose>
 </xsl:template>
 
+<!-- Extracts filename from path after last slash -->
+<xsl:template name="getFilename"> 
+  <xsl:param name="url" /> 
+
+  <xsl:choose> 
+    <xsl:when test="contains($url,'/')"> 
+      <xsl:call-template name="getFilename"> 
+        <xsl:with-param name="url" select="substring-after($url,'/')" />
+      </xsl:call-template> 
+    </xsl:when>
+    <xsl:otherwise>
+      <xsl:value-of select="$url" /> 
+    </xsl:otherwise> 
+  </xsl:choose>
+</xsl:template> 
+
 <xsl:template match="chapter|appendix|preface|colophon|dedication|glossary|bibliography" mode="chunk">
+  <!-- File name with extension -->
+  <xsl:variable name="filename">
+    <xsl:call-template name="getFilename">
+      <xsl:with-param name="url" select="base-uri()"/>
+    </xsl:call-template>
+  </xsl:variable>
+
+  <!-- File name without extension -->
+  <xsl:variable name="divisionfilename">
+    <xsl:value-of select="substring-before($filename, '.')"/>
+  </xsl:variable>
+
   <xsl:variable name="doc-name">
     <xsl:choose>
-      <xsl:when test="self::chapter">
-        <xsl:text>ch</xsl:text>
-	<xsl:number count="chapter" level="any" format="01"/>
+      <xsl:when test="$divisionfilename != ''">
+        <xsl:value-of select="$divisionfilename"/>
       </xsl:when>
-      <xsl:when test="self::appendix">
-        <xsl:text>app</xsl:text>
-	<xsl:number count="appendix" level="any" format="a"/>
-      </xsl:when>
-      <xsl:when test="self::preface">
-	<xsl:text>pr</xsl:text>
-	<xsl:number count="preface" level="any" format="01"/>
-      </xsl:when>
-      <xsl:when test="self::colophon">
-        <xsl:text>colo</xsl:text>
-        <xsl:if test="count(//colophon) &gt; 1">
-	  <xsl:number count="colo" level="any" format="01"/>
-        </xsl:if>
-      </xsl:when>
-      <xsl:when test="self::dedication">
-        <xsl:text>dedication</xsl:text>
-        <xsl:if test="count(//dedication) &gt; 1">
-	  <xsl:number count="dedication" level="any" format="01"/>
-        </xsl:if>
-      </xsl:when>
-      <xsl:when test="self::glossary">
-        <xsl:text>glossary</xsl:text>
-        <xsl:if test="count(//glossary) &gt; 1">
-	  <xsl:number count="glossary" level="any" format="01"/>
-        </xsl:if>
-      </xsl:when>
-      <xsl:when test="self::bibliography">
-        <xsl:text>bibliography</xsl:text>
-        <xsl:if test="count(//bibliography) &gt; 1">
-	  <xsl:number count="bibliography" level="any" format="01"/>
-        </xsl:if>
-      </xsl:when>
+
+      <!-- Use automatic file names -->
+      <xsl:otherwise>
+        <xsl:choose>
+          <xsl:when test="self::chapter">
+            <xsl:text>ch</xsl:text>
+            <xsl:number count="chapter" level="any" format="01"/>
+          </xsl:when>
+          <xsl:when test="self::appendix">
+            <xsl:text>app</xsl:text>
+            <xsl:number count="appendix" level="any" format="a"/>
+          </xsl:when>
+          <xsl:when test="self::preface">
+            <xsl:text>pr</xsl:text>
+            <xsl:number count="preface" level="any" format="01"/>
+          </xsl:when>
+          <xsl:when test="self::colophon">
+            <xsl:text>colo</xsl:text>
+            <xsl:if test="count(//colophon) &gt; 1">
+              <xsl:number count="colo" level="any" format="01"/>
+            </xsl:if>
+          </xsl:when>
+          <xsl:when test="self::dedication">
+            <xsl:text>dedication</xsl:text>
+            <xsl:if test="count(//dedication) &gt; 1">
+              <xsl:number count="dedication" level="any" format="01"/>
+            </xsl:if>
+          </xsl:when>
+          <xsl:when test="self::glossary">
+            <xsl:text>glossary</xsl:text>
+            <xsl:if test="count(//glossary) &gt; 1">
+              <xsl:number count="glossary" level="any" format="01"/>
+            </xsl:if>
+          </xsl:when>
+          <xsl:when test="self::bibliography">
+            <xsl:text>bibliography</xsl:text>
+            <xsl:if test="count(//bibliography) &gt; 1">
+              <xsl:number count="bibliography" level="any" format="01"/>
+            </xsl:if>
+          </xsl:when>
+        </xsl:choose>
+      </xsl:otherwise>
     </xsl:choose>
     <xsl:text>.asciidoc</xsl:text>
   </xsl:variable>
@@ -583,6 +622,10 @@
   </xsl:template>
   
 <xsl:template match="para|simpara">
+  <xsl:variable name="content">
+    <xsl:apply-templates select="node()"/>
+  </xsl:variable>
+
   <xsl:choose>
     <xsl:when test="ancestor::callout"/>
     <xsl:otherwise>
@@ -590,33 +633,36 @@
     </xsl:otherwise>
   </xsl:choose>
   <!-- If it's the 2nd+ para inside a listitem, glossdef, or callout (but not a nested admonition or sidebar), precede it with a plus symbol -->
-<xsl:if test="ancestor::listitem and preceding-sibling::element()">
-  <xsl:choose>
-  <xsl:when test="not(ancestor::warning|ancestor::note|ancestor::caution|ancestor::tip|ancestor::important) and not(ancestor::sidebar)">
+  <xsl:if test="ancestor::listitem and preceding-sibling::element()">
+    <xsl:choose>
+      <xsl:when test="not(ancestor::warning|ancestor::note|ancestor::caution|ancestor::tip|ancestor::important) and not(ancestor::sidebar)">
+        <xsl:text>+</xsl:text><xsl:value-of select="util:carriage-returns(1)"/>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:value-of select="util:carriage-returns(1)"/>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:if>
+  <xsl:if test="ancestor::glossdef and preceding-sibling::element()">
     <xsl:text>+</xsl:text><xsl:value-of select="util:carriage-returns(1)"/>
-  </xsl:when>
-  <xsl:otherwise>
-    <xsl:value-of select="util:carriage-returns(1)"/>
-  </xsl:otherwise>
-</xsl:choose>
-</xsl:if>
-<xsl:if test="ancestor::glossdef and preceding-sibling::element()">
-  <xsl:text>+</xsl:text><xsl:value-of select="util:carriage-returns(1)"/>
-</xsl:if>
-<xsl:if test="ancestor::callout and preceding-sibling::element()">
-  <xsl:text>+</xsl:text><xsl:value-of select="util:carriage-returns(1)"/>
-</xsl:if>
-<xsl:apply-templates select="node()"/>
+  </xsl:if>
+  <xsl:if test="ancestor::callout and preceding-sibling::element()">
+    <xsl:text>+</xsl:text><xsl:value-of select="util:carriage-returns(1)"/>
+  </xsl:if>
+
+  <!-- Include cleaned paragraph text: unindent, etc. -->
+  <xsl:sequence select="replace(concat(normalize-space($content),' '), '(.{0,80}) ', '$1&#xA;')"/>
+
   <!-- Control number of blank lines following para, if it's inside a listitem or glossary -->
-<xsl:choose>
-  <xsl:when test="following-sibling::glossseealso">
-    <xsl:value-of select="util:carriage-returns(1)"/>
-  </xsl:when>
-  <xsl:when test="ancestor::listitem and following-sibling::element()">
-    <xsl:value-of select="util:carriage-returns(1)"/>
-  </xsl:when>
-  <xsl:otherwise><xsl:value-of select="util:carriage-returns(2)"/></xsl:otherwise>
-</xsl:choose>
+  <xsl:choose>
+    <xsl:when test="following-sibling::glossseealso">
+      <xsl:value-of select="util:carriage-returns(1)"/>
+    </xsl:when>
+    <xsl:when test="ancestor::listitem and following-sibling::element()">
+      <xsl:value-of select="util:carriage-returns(1)"/>
+    </xsl:when>
+    <xsl:otherwise><xsl:value-of select="util:carriage-returns(2)"/></xsl:otherwise>
+  </xsl:choose>
 </xsl:template>
 
 <xsl:template match="formalpara">
@@ -867,7 +913,7 @@ ____
 </xsl:if>
 <xsl:call-template name="process-id"/>
 <xsl:text>.</xsl:text><xsl:apply-templates select="title"/>
-image::<xsl:value-of select="mediaobject/imageobject[@role='web']/imagedata/@fileref"/>[]
+image::<xsl:value-of select="mediaobject/imageobject[@role='web' or @role='html']/imagedata/@fileref"/>[]
 <xsl:choose>
   <xsl:when test="ancestor::listitem and following-sibling::element()"/>
   <xsl:otherwise><xsl:value-of select="util:carriage-returns(1)"/></xsl:otherwise>
@@ -1399,9 +1445,10 @@ pass:[<xsl:copy-of select="."/>]
   <xsl:text>footnoteref:[</xsl:text><xsl:value-of select="@linkend"/><xsl:text>]</xsl:text>
 </xsl:template>
 
-<xsl:template match="section">
+<xsl:template match="section|simplesect">
   <xsl:call-template name="process-id"/>
-  <xsl:sequence select="string-join (('&#10;&#10;', for $i in (1 to count (ancestor::section) + 3) return '='),'')"/>
+  <xsl:sequence select="string-join (('&#10;&#10;', for $i in (1 to count (ancestor::section | ancestor::simplesect) + 3) return '='),'')"/>
+  <xsl:text> </xsl:text>
   <xsl:apply-templates select="title"/>
   <xsl:value-of select="util:carriage-returns(2)"/>
   <xsl:apply-templates select="*[not(self::title)]"/>
