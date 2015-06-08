@@ -1669,8 +1669,11 @@ pass:[<xsl:copy-of select="."/>]
 <xsl:template name="process-id">
   <xsl:if test="@xml:id or @id">
     <xsl:text xml:space="preserve">[[</xsl:text>
-    <xsl:value-of select="@xml:id"/> <!-- Assume only one to exist -->
+
+    <!-- Assume only either to exist -->
+    <xsl:value-of select="@xml:id"/>
     <xsl:value-of select="id"/>
+
     <xsl:text xml:space="preserve">]]&#10;</xsl:text>
   </xsl:if>
 </xsl:template>
