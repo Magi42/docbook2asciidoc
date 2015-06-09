@@ -59,12 +59,29 @@
     </xsl:choose>
   </xsl:template>
 
-  <!-- Rewrap text -->
-  <xsl:template match="para/text() | listitem/text()">
+  <!-- Rewrap paragraph body text -->
+  <xsl:template name="rewrap-para">
     <xsl:variable name="content">
-      <xsl:value-of select="replace(concat(normalize-space(.),' '), '(.{0,80}) ', '$1&#xa;')"/>
+      <xsl:apply-templates/>
     </xsl:variable>
 
+    <xsl:variable name="wrapped">
+      <xsl:value-of select="replace(concat($content,' '), '(.{0,80}) ', '$1&#xa;')"/>
+    </xsl:variable>
+
+    <!-- Remove trailing newline -->
+    <xsl:choose>
+      <xsl:when test="ends-with($wrapped, '&#xa;')">
+        <xsl:value-of select="substring($wrapped, 1, string-length($wrapped) - 1)"/>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:value-of select="$wrapped"/>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
+  <!-- Text inside paras must control its leading and trailing whitespace -->
+  <xsl:template match="para/text() | listitem/text()">
     <xsl:variable name="starts-with-whitespace">
       <xsl:value-of select="starts-with(., ' ') or starts-with(., '&#xa;') or starts-with(., '&#x9;')"/>
     </xsl:variable>
@@ -76,22 +93,18 @@
       <xsl:text> </xsl:text>
     </xsl:if>
 
-    <!-- Remove trailing newline -->
-    <xsl:value-of select="substring($content, 1, string-length($content) - 1)"/>
+    <xsl:value-of select="normalize-space(.)"/>
 
+    <!--
     <xsl:variable name="ends-with-whitespace">
       <xsl:value-of select="ends-with(., ' ') or ends-with(., '&#xa;') or ends-with(., '&#x9;')"/>
-    </xsl:variable>
+    </xsl:variable> -->
 
-    <xsl:if test="$ends-with-whitespace='true' and normalize-space(.) != ''">
+    <!-- Must add a space if there's an inline element following,
+         but not if this text is just whitespace -->
+    <xsl:if test="exists(following-sibling::element()) and normalize-space(.) != ''">
       <xsl:text> </xsl:text>
     </xsl:if>
-  </xsl:template>
-
-  <!-- Rewrap paragraph body text -->
-  <!-- Note that markup must not be disturbed. -->
-  <xsl:template name="rewrap-para">
-    <xsl:apply-templates select="node()"/>
   </xsl:template>
 
   <xsl:template match="formalpara">
@@ -136,12 +149,19 @@
 
   <!-- Handling for inline quote elements -->
   <xsl:template match="quote">
-    <xsl:text>"</xsl:text><xsl:apply-templates/><xsl:text>"</xsl:text>
+    <xsl:text>"</xsl:text>
+    <xsl:apply-templates/>
+    <xsl:text>"</xsl:text>
   </xsl:template>
 
   <xsl:template match="phrase/text()">
     <xsl:text/>
     <xsl:value-of select="replace(., '\n\s+', ' ', 'm')"/>
     <xsl:text/>
+  </xsl:template>
+
+  <!-- Other text: just normalize -->
+  <xsl:template match="text()">
+    <xsl:value-of select="normalize-space(.)"/>
   </xsl:template>
 </xsl:stylesheet>
