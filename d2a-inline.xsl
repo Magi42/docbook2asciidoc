@@ -16,7 +16,34 @@
     <xsl:apply-templates />
   </xsl:template>
 
-  <xsl:template match="emphasis[@role='bold']|emphasis[@role='strong']">**<xsl:apply-templates />**</xsl:template>
+  <!-- ===================================================================== -->
+  <!-- Emphasis                                                              -->
+  <!-- ===================================================================== -->
+
+  <!-- Bold emphasis -->
+  <xsl:template match="emphasis[@role='bold'] | emphasis[@role='strong'] | guibutton | guilabel">
+    <xsl:if test="guibutton | guilabel">
+      <xsl:text>[</xsl:text>
+      <xsl:value-of select="name()"/>
+      <xsl:text>]</xsl:text>
+    </xsl:if>
+    <xsl:text>**</xsl:text>
+    <xsl:apply-templates />
+    <xsl:text>**</xsl:text>
+  </xsl:template>
+
+  <!-- Italic emphasis and firstterm-->
+  <xsl:template match="emphasis | firstterm">
+    <xsl:text>__</xsl:text>
+    <xsl:if test="contains(., '~') or contains(., '_')">
+      <xsl:text>$$</xsl:text>
+    </xsl:if>
+    <xsl:apply-templates/>
+    <xsl:if test="contains(., '~') or contains(., '_')">
+      <xsl:text>$$</xsl:text>
+    </xsl:if>
+    <xsl:text>__</xsl:text>
+  </xsl:template>
 
   <xsl:template match="filename">__<xsl:if test="contains(., '~') or contains(., '_')">$$</xsl:if><xsl:apply-templates/><xsl:if test="contains(., '~') or contains(., '_')">$$</xsl:if>__</xsl:template>
 
@@ -32,8 +59,6 @@
       <xsl:text> </xsl:text>
     </xsl:if>
   </xsl:template>
-
-  <xsl:template match="emphasis">__<xsl:if test="contains(., '~') or contains(., '_')">$$</xsl:if><xsl:apply-templates/><xsl:if test="contains(., '~') or contains(., '_')">$$</xsl:if>__</xsl:template>
 
   <!-- Normalize-space() on text node below includes extra handling for child elements of
        emphasis, to add needed spaces back in. (They're removed by normalize-space(), which
@@ -106,7 +131,9 @@
     </xsl:choose>
   </xsl:template>
 
-  <!-- Normalize-space() on text node below includes extra handling for child elements of replaceable, to add needed spaces back in. (They're removed by normalize-space(), which normalizes the two text nodes separately.) -->
+  <!-- Normalize-space() on text node below includes extra handling for child elements of
+       replaceable, to add needed spaces back in. (They're removed by normalize-space(), which
+       normalizes the two text nodes separately.) -->
   <xsl:template match="replaceable/text()">
     <xsl:if test="preceding-sibling::* and (starts-with(.,' ') or starts-with(.,'&#10;'))">
       <xsl:text> </xsl:text>
@@ -152,6 +179,28 @@
     <xsl:value-of select="normalize-space(.)"/>
     <xsl:if test="following-sibling::* and (substring(.,string-length(.))=' ' or substring(.,string-length(.))='&#10;')">
       <xsl:text> </xsl:text>
+    </xsl:if>
+  </xsl:template>
+
+  <!-- ===================================================================== -->
+  <!-- Menu choices                                                          -->
+  <!-- ===================================================================== -->
+  <xsl:template match="menuchoice">
+    <xsl:text>menu:</xsl:text>
+    <xsl:for-each select="guimenu | guisubmenu | guimenuitem">
+      <xsl:if test="position()=2">
+        <xsl:text>[</xsl:text>
+      </xsl:if>
+
+      <xsl:if test="position()>2">
+        <xsl:text> &gt; </xsl:text>
+      </xsl:if>
+
+      <xsl:value-of select="normalize-space(.)"/>
+    </xsl:for-each>
+
+    <xsl:if test="count(guimenu | guisubmenu | guimenuitem) > 1">
+      <xsl:text>]</xsl:text>
     </xsl:if>
   </xsl:template>
 </xsl:stylesheet>

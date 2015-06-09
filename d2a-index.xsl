@@ -25,6 +25,7 @@
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
+
   <!-- If keeping index, output heading markup in index file -->
   <xsl:template match="index">
     <xsl:choose>
@@ -38,6 +39,7 @@
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
+
   <!-- Handling for in-text index markup -->
   <!-- Specific handling for indexterms in emphasis elements, to override emphasis template that was ignoring indexterms -->
   <xsl:template match="indexterm | indexterm[parent::emphasis]">
@@ -50,7 +52,13 @@
   <xsl:template match="indexterm[@class='startofrange'][not(*/@sortas)] | indexterm[@class='startofrange'][parent::emphasis][not(*/@sortas)]">
     <xsl:choose>
       <xsl:when test="$strip-indexterms = 'true'"/>
-      <xsl:otherwise><xsl:text>(((</xsl:text><xsl:apply-templates/><xsl:text>, id="</xsl:text><xsl:value-of select="@id"/><xsl:text>", range="startofrange")))</xsl:text></xsl:otherwise>
+      <xsl:otherwise>
+        <xsl:text>(((</xsl:text>
+        <xsl:apply-templates/>
+        <xsl:text>, id="</xsl:text>
+        <xsl:value-of select="@id"/>
+        <xsl:text>", range="startofrange")))</xsl:text>
+      </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
   

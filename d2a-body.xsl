@@ -65,14 +65,25 @@
       <xsl:value-of select="replace(concat(normalize-space(.),' '), '(.{0,80}) ', '$1&#xa;')"/>
     </xsl:variable>
 
-    <xsl:if test="starts-with(., ' ')">
+    <xsl:variable name="starts-with-whitespace">
+      <xsl:value-of select="starts-with(., ' ') or starts-with(., '&#xa;') or starts-with(., '&#x9;')"/>
+    </xsl:variable>
+
+    <!-- Add a space if
+         1) there was one originally
+         2) there's a newline after a sibling; a newline after an inline element -->
+    <xsl:if test="$starts-with-whitespace='true' and exists(preceding-sibling::element())">
       <xsl:text> </xsl:text>
     </xsl:if>
 
     <!-- Remove trailing newline -->
     <xsl:value-of select="substring($content, 1, string-length($content) - 1)"/>
 
-    <xsl:if test="ends-with(., ' ')">
+    <xsl:variable name="ends-with-whitespace">
+      <xsl:value-of select="ends-with(., ' ') or ends-with(., '&#xa;') or ends-with(., '&#x9;')"/>
+    </xsl:variable>
+
+    <xsl:if test="$ends-with-whitespace='true' and normalize-space(.) != ''">
       <xsl:text> </xsl:text>
     </xsl:if>
   </xsl:template>

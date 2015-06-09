@@ -294,12 +294,12 @@
           <!-- Use Docbook passthrough when code block has inlines -->
           <xsl:when test="*[not(self::indexterm)]">
             <xsl:if test="ancestor::listitem and preceding-sibling::element()">
-              <xsl:text>+</xsl:text>
-              <xsl:value-of select="util:carriage-returns(1)"/>
+              <xsl:text>&#xa;+</xsl:text>
             </xsl:if>
-            <xsl:text>&#xa;++++++++++++++++++++++++++++++++++++++&#xa;</xsl:text>
+            <xsl:value-of select="util:carriage-returns(1)"/>
+            <xsl:text>++++++++++++++++++++++++++++++++++++++&#xa;</xsl:text>
             <xsl:copy-of select="."/>
-            <xsl:text>&#xa;++++++++++++++++++++++++++++++++++++++&#xa;&#xa;</xsl:text>
+            <xsl:text>&#xa;++++++++++++++++++++++++++++++++++++++&#xa;</xsl:text>
           </xsl:when>
 
           <!-- Use Docbook passthrough when code block contains indexterms and you want to keep them -->
@@ -310,7 +310,7 @@
             </xsl:if>
             <xsl:text>++++++++++++++++++++++++++++++++++++++&#xa;</xsl:text>
             <xsl:copy-of select="."/>
-            <xsl:text>&#xa;++++++++++++++++++++++++++++++++++++++&#xa;&#xa;</xsl:text>
+            <xsl:text>&#xa;++++++++++++++++++++++++++++++++++++++&#xa;</xsl:text>
           </xsl:when>
 
           <!-- Output Asciidoc -->
