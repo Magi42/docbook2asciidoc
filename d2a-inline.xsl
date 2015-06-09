@@ -21,7 +21,7 @@
   <!-- ===================================================================== -->
 
   <!-- Bold emphasis -->
-  <xsl:template match="emphasis[@role='bold'] | emphasis[@role='strong'] | guibutton | guilabel">
+  <xsl:template match="emphasis[@role='bold'] | emphasis[@role='strong'] | guibutton | guilabel | parameter">
     <xsl:if test="guibutton | guilabel">
       <xsl:text>[</xsl:text>
       <xsl:value-of select="name()"/>

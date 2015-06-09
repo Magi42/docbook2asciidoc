@@ -291,15 +291,16 @@
       <!-- No child co elements -->
       <xsl:otherwise>
         <xsl:choose>
-          <!-- Use Docbook passthrough when code block has inlines -->
+          <!-- Use passthrough macro when code block has inlines -->
           <xsl:when test="*[not(self::indexterm)]">
             <xsl:if test="ancestor::listitem and preceding-sibling::element()">
-              <xsl:text>&#xa;+</xsl:text>
+              <xsl:text>&#xa;+&#xa;</xsl:text>
             </xsl:if>
+            <xsl:text>[subs="verbatim,macros"]</xsl:text>
             <xsl:value-of select="util:carriage-returns(1)"/>
-            <xsl:text>++++++++++++++++++++++++++++++++++++++&#xa;</xsl:text>
-            <xsl:copy-of select="."/>
-            <xsl:text>&#xa;++++++++++++++++++++++++++++++++++++++&#xa;</xsl:text>
+            <xsl:text>----&#xa;pass:quotes[</xsl:text>
+            <xsl:apply-templates/>
+            <xsl:text>]&#xa;----&#xa;</xsl:text>
           </xsl:when>
 
           <!-- Use Docbook passthrough when code block contains indexterms and you want to keep them -->
@@ -375,6 +376,11 @@
         </xsl:choose>
       </xsl:otherwise>
     </xsl:choose>
+  </xsl:template>
+
+  <!-- Passthrough code block text should not be normalized -->
+  <xsl:template match="screen/text()">
+    <xsl:value-of select="."/>
   </xsl:template>
 
   <!-- ======================================================================= -->
