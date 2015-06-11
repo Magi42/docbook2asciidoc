@@ -152,10 +152,12 @@
                 <xsl:value-of select="util:carriage-returns(1)"/>
                 <xsl:text>....</xsl:text>
                 <xsl:value-of select="util:carriage-returns(1)"/>
+
                 <!-- This apply-templates calls on special "code" mode templates for text() and <co> elements.
                      Allows disable-output-escaping to be used on text(), while still using apply-templates to
                      process child <co> elements. -->
                 <xsl:apply-templates mode="code"/>
+
                 <xsl:value-of select="util:carriage-returns(1)"/>
                 <xsl:text>....</xsl:text>
                 <xsl:choose>
@@ -163,13 +165,16 @@
                   <xsl:otherwise><xsl:value-of select="util:carriage-returns(2)"/></xsl:otherwise>
                 </xsl:choose>
               </xsl:when>
+
               <xsl:otherwise>
                 <xsl:text>&#xa;----&#xa;</xsl:text>
                 <xsl:value-of select="util:carriage-returns(1)"/>
+
                 <!-- This apply-templates calls on special "code" mode templates for text() and <co> elements.
                      Allows disable-output-escaping to be used on text(), while still using apply-templates to
                      process child <co> elements. -->
                 <xsl:apply-templates mode="code"/>
+
                 <xsl:value-of select="util:carriage-returns(1)"/>
                 <xsl:text>&#xa;----&#xa;</xsl:text>
                 <xsl:choose>
@@ -299,7 +304,11 @@
             <xsl:text>[subs="verbatim,macros"]</xsl:text>
             <xsl:value-of select="util:carriage-returns(1)"/>
             <xsl:text>----&#xa;pass:quotes[</xsl:text>
+
+            <!-- Note that we're not using the 'code' mode here, as
+                 we want to process the inlines normally. -->
             <xsl:apply-templates/>
+
             <xsl:text>]&#xa;----&#xa;</xsl:text>
           </xsl:when>
 
@@ -316,7 +325,6 @@
 
           <!-- Output Asciidoc -->
           <xsl:otherwise>
-            <!-- TODO Removing this newline seems to cause some odd trouble. -->
             <xsl:value-of select="util:carriage-returns(1)"/>
 
             <xsl:if test="ancestor::listitem and preceding-sibling::element()">
@@ -379,7 +387,7 @@
   </xsl:template>
 
   <!-- Passthrough code block text should not be normalized -->
-  <xsl:template match="screen/text()">
+  <xsl:template match="programlisting/text() | screen/text()">
     <xsl:value-of select="."/>
   </xsl:template>
 
