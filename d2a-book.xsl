@@ -15,10 +15,18 @@
   <!-- ======================================================================= -->
   <xsl:template match="/book">
 
-    <!-- Set attributes:
-         - 'experimental' is needed by menus and pass. -->
+    <!-- Set attributes: -->
+
+    <!-- - 'experimental' is needed by menus and pass -->
     <xsl:text>:experimental: true&#xa;</xsl:text>
 
+    <!-- Enable source-highlighter if need is detected -->
+    <!-- Currently detected: Java                      -->
+    <xsl:if test="//programlisting[@language='java']">
+      <xsl:text>:source-highlighter: coderay&#xa;</xsl:text>
+    </xsl:if>
+
+    <!-- Title -->
     <xsl:choose>
       <xsl:when test="title">
         <xsl:apply-templates select="title"/>
