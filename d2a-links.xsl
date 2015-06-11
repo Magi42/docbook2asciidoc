@@ -30,8 +30,40 @@
 
   <xsl:template match="xref">
     <xsl:text>&#xE801;&#xE801;</xsl:text>
+
+    <xsl:variable name="linkend">
+      <xsl:value-of select="@linkend" />
+    </xsl:variable>
+
+    <!-- Determine the file in which the ID resides -->
+    <xsl:variable name="uri">
+      <xsl:value-of select="base-uri(//*[@xml:id=$linkend])"/>
+    </xsl:variable>
+
+    <!-- Determine file name with extension -->
+    <xsl:variable name="filename">
+      <xsl:call-template name="util:getFilename">
+        <xsl:with-param name="url" select="$uri"/>
+      </xsl:call-template>
+    </xsl:variable>
+
+    <!-- Determine file name without extension -->
+    <xsl:variable name="divisionfilename">
+      <xsl:value-of select="substring-before($filename, '.')"/>
+    </xsl:variable>
+
+    <xsl:value-of select="$divisionfilename"/>
+    <xsl:text>.asciidoc</xsl:text>
+
+    <!-- And then the actual ID -->
+    <xsl:text>#</xsl:text>
     <xsl:value-of select="@linkend" />
-    <xsl:text>&#xE802;&#xE802;</xsl:text>
+
+    <!-- Include the title -->
+    <xsl:text>,"</xsl:text>
+    <xsl:value-of select="//*[@xml:id=$linkend]/title"/>
+
+    <xsl:text>"&#xE802;&#xE802;</xsl:text>
   </xsl:template>
 
   <xsl:template match="link" xmlns:xlink="http://www.w3.org/1999/xlink">
