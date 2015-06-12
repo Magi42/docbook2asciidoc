@@ -65,7 +65,15 @@
 
     <!-- Create the chapter-doc -->
     <xsl:result-document href="{$chapter-doc-name}">
-      <xsl:apply-templates select="." mode="#default"/>
+      <xsl:choose>
+        <!-- Chunk by chapter sections -->
+        <xsl:when test="self::chapter and $chunk-sections != 'false'">
+          <xsl:apply-templates select="*" mode="chunk"/>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:apply-templates select="." mode="#default"/>
+        </xsl:otherwise>
+      </xsl:choose>
     </xsl:result-document>
   </xsl:template>
 
@@ -76,7 +84,7 @@
     </xsl:variable>
 
     <!-- Output to sub-directory if section-level chunking is enabled -->
-    <xsl:if test="$chunk-sections != 'false'">
+    <xsl:if test="self::chapter and $chunk-sections != 'false'">
       <xsl:value-of select="concat($basefilename, '/')"/>
     </xsl:if>
 
@@ -251,6 +259,48 @@
   <!-- ===================================================================== -->
   <!-- Section-level                                                         -->
   <!-- ===================================================================== -->
+
+  <!-- Chunk output by any section-level division element -->
+  <xsl:template match="chapter/section | appendix/section | sect1" mode="chunk">
+    <xsl:variable name="section-doc-name">
+      <xsl:value-of select="util:section-doc-name(base-uri(parent::node()), self::node())"/>
+    </xsl:variable>
+
+    <!-- Include the chapter-doc in the book-doc -->
+    <xsl:value-of select="util:carriage-returns(2)"/>
+    <xsl:text>include::</xsl:text>
+    <xsl:value-of select="$section-doc-name"/>
+    <xsl:text>[]</xsl:text>
+
+    <!-- Create the chapter-doc -->
+    <xsl:result-document href="{$section-doc-name}">
+      <xsl:apply-templates select="." mode="#default"/>
+    </xsl:result-document>
+  </xsl:template>
+
+  <!-- Determine the file name of the section doc -->
+  <xsl:function name="util:section-doc-name">
+    <!-- URI of the original source file -->
+    <xsl:param name="uri"/>
+
+    <xsl:param name="node"/>
+
+    <!-- Determine chapter-level file name without extension -->
+    <xsl:variable name="chapterfilename">
+      <xsl:value-of select="substring-before(util:getFilename($uri), '.')"/>
+    </xsl:variable>
+
+    <xsl:variable name="sectionid">
+      <xsl:value-of select="$node/@xml:id"/>
+    </xsl:variable>
+
+    <xsl:variable name="sectionbasename">
+      <xsl:value-of select="replace($sectionid, '\.', '-')"/>
+    </xsl:variable>
+
+    <!-- Output to per-chapter sub-directory -->
+    <xsl:value-of select="concat($chapterfilename, '/section-', $sectionbasename, '.asciidoc')"/>
+  </xsl:function>
 
   <xsl:template match="sect1">
     <!-- If sect1 title is "References," override special Asciidoc section macro -->
