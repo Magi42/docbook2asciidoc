@@ -58,6 +58,9 @@
         <xsl:text>, id="</xsl:text>
         <xsl:value-of select="@id"/>
         <xsl:text>", range="startofrange")))</xsl:text>
+
+        <!-- Without the newlines, there will be trouble -->
+        <xsl:text>&#xa;&#xa;</xsl:text>
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
