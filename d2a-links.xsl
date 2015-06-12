@@ -42,17 +42,15 @@
 
     <!-- Determine file name with extension -->
     <xsl:variable name="filename">
-      <xsl:call-template name="util:getFilename">
-        <xsl:with-param name="url" select="$uri"/>
-      </xsl:call-template>
+      <xsl:value-of select="util:getFilename($uri)"/>
     </xsl:variable>
 
     <!-- Determine file name without extension -->
-    <xsl:variable name="divisionfilename">
+    <xsl:variable name="basefilename">
       <xsl:value-of select="substring-before($filename, '.')"/>
     </xsl:variable>
 
-    <xsl:value-of select="$divisionfilename"/>
+    <xsl:value-of select="$basefilename"/>
     <xsl:text>.asciidoc</xsl:text>
 
     <!-- And then the actual ID -->

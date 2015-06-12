@@ -35,6 +35,8 @@
         <xsl:apply-templates select="bookinfo/title"/>
       </xsl:when>
     </xsl:choose>
+
+    <!-- Sub-divisions -->
     <xsl:choose>
       <xsl:when test="$chunk-output != 'false'">
         <xsl:apply-templates select="*[not(self::title)]" mode="chunk"/>

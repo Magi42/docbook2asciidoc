@@ -55,18 +55,17 @@
   </xsl:template>
 
   <!-- Extracts filename from path after last slash -->
-  <xsl:template name="util:getFilename">
-    <xsl:param name="url"/>
+  <xsl:function name="util:getFilename">
+    <xsl:param name="uri"/>
 
+    <!-- Resolve the filename recursively -->
     <xsl:choose>
-      <xsl:when test="contains($url,'/')">
-        <xsl:call-template name="util:getFilename">
-          <xsl:with-param name="url" select="substring-after($url,'/')" />
-        </xsl:call-template>
+      <xsl:when test="contains($uri,'/')">
+        <xsl:value-of select="util:getFilename(substring-after($uri,'/'))"/>
       </xsl:when>
       <xsl:otherwise>
-        <xsl:value-of select="$url" />
+        <xsl:value-of select="$uri" />
       </xsl:otherwise>
     </xsl:choose>
-  </xsl:template>
+  </xsl:function>
 </xsl:stylesheet>

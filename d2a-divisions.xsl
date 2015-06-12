@@ -12,6 +12,9 @@
   xpath-default-namespace="http://docbook.org/ns/docbook"
   exclude-result-prefixes="util">
 
+  <!-- ===================================================================== -->
+  <!-- Part                                                                  -->
+  <!-- ===================================================================== -->
   <xsl:template match="part" mode="chunk">
     <!-- Only bother chunking parts into a separate file if there's actually partintro content -->
     <xsl:variable name="part_content">
@@ -50,77 +53,82 @@
 
   <!-- Chunk output by any chapter-level division element -->
   <xsl:template match="chapter|appendix|preface|colophon|dedication|glossary|bibliography" mode="chunk">
-    <!-- Determine file name with extension -->
-    <xsl:variable name="filename">
-      <xsl:call-template name="util:getFilename">
-        <xsl:with-param name="url" select="base-uri()"/>
-      </xsl:call-template>
+    <xsl:variable name="chapter-doc-name">
+      <xsl:call-template name="chapter-doc-name"/>
     </xsl:variable>
 
-    <!-- Determine file name without extension -->
-    <xsl:variable name="divisionfilename">
-      <xsl:value-of select="substring-before($filename, '.')"/>
-    </xsl:variable>
-
-    <xsl:variable name="doc-name">
-      <xsl:choose>
-        <!-- If possible, use the input file name for the output file -->
-        <xsl:when test="$divisionfilename != ''">
-          <xsl:value-of select="$divisionfilename"/>
-        </xsl:when>
-
-        <!-- Use automatic file names -->
-        <xsl:otherwise>
-          <xsl:choose>
-            <xsl:when test="self::chapter">
-              <xsl:text>ch</xsl:text>
-              <xsl:number count="chapter" level="any" format="01"/>
-            </xsl:when>
-            <xsl:when test="self::appendix">
-              <xsl:text>app</xsl:text>
-              <xsl:number count="appendix" level="any" format="a"/>
-            </xsl:when>
-            <xsl:when test="self::preface">
-              <xsl:text>pr</xsl:text>
-              <xsl:number count="preface" level="any" format="01"/>
-            </xsl:when>
-            <xsl:when test="self::colophon">
-              <xsl:text>colo</xsl:text>
-              <xsl:if test="count(//colophon) &gt; 1">
-                <xsl:number count="colo" level="any" format="01"/>
-              </xsl:if>
-            </xsl:when>
-            <xsl:when test="self::dedication">
-              <xsl:text>dedication</xsl:text>
-              <xsl:if test="count(//dedication) &gt; 1">
-                <xsl:number count="dedication" level="any" format="01"/>
-              </xsl:if>
-            </xsl:when>
-            <xsl:when test="self::glossary">
-              <xsl:text>glossary</xsl:text>
-              <xsl:if test="count(//glossary) &gt; 1">
-                <xsl:number count="glossary" level="any" format="01"/>
-              </xsl:if>
-            </xsl:when>
-            <xsl:when test="self::bibliography">
-              <xsl:text>bibliography</xsl:text>
-              <xsl:if test="count(//bibliography) &gt; 1">
-                <xsl:number count="bibliography" level="any" format="01"/>
-              </xsl:if>
-            </xsl:when>
-          </xsl:choose>
-        </xsl:otherwise>
-      </xsl:choose>
-      <xsl:text>.asciidoc</xsl:text>
-    </xsl:variable>
-
+    <!-- Include the chapter-doc in the book-doc -->
     <xsl:value-of select="util:carriage-returns(2)"/>
     <xsl:text>include::</xsl:text>
-    <xsl:value-of select="$doc-name"/>
+    <xsl:value-of select="$chapter-doc-name"/>
     <xsl:text>[]</xsl:text>
-    <xsl:result-document href="{$doc-name}">
+
+    <!-- Create the chapter-doc -->
+    <xsl:result-document href="{$chapter-doc-name}">
       <xsl:apply-templates select="." mode="#default"/>
     </xsl:result-document>
+  </xsl:template>
+
+  <xsl:template name="chapter-doc-name">
+    <!-- Determine file name without extension -->
+    <xsl:variable name="basefilename">
+      <xsl:value-of select="substring-before(util:getFilename(base-uri()), '.')"/>
+    </xsl:variable>
+
+    <!-- Output to sub-directory if section-level chunking is enabled -->
+    <xsl:if test="$chunk-sections != 'false'">
+      <xsl:value-of select="concat($basefilename, '/')"/>
+    </xsl:if>
+
+    <xsl:choose>
+      <!-- If possible, use the input file name for the output file -->
+      <xsl:when test="$basefilename != ''">
+        <xsl:value-of select="$basefilename"/>
+      </xsl:when>
+
+      <!-- Use automatic file names -->
+      <xsl:otherwise>
+        <xsl:choose>
+          <xsl:when test="self::chapter">
+            <xsl:text>ch</xsl:text>
+            <xsl:number count="chapter" level="any" format="01"/>
+          </xsl:when>
+          <xsl:when test="self::appendix">
+            <xsl:text>app</xsl:text>
+            <xsl:number count="appendix" level="any" format="a"/>
+          </xsl:when>
+          <xsl:when test="self::preface">
+            <xsl:text>pr</xsl:text>
+            <xsl:number count="preface" level="any" format="01"/>
+          </xsl:when>
+          <xsl:when test="self::colophon">
+            <xsl:text>colo</xsl:text>
+            <xsl:if test="count(//colophon) &gt; 1">
+              <xsl:number count="colo" level="any" format="01"/>
+            </xsl:if>
+          </xsl:when>
+          <xsl:when test="self::dedication">
+            <xsl:text>dedication</xsl:text>
+            <xsl:if test="count(//dedication) &gt; 1">
+              <xsl:number count="dedication" level="any" format="01"/>
+            </xsl:if>
+          </xsl:when>
+          <xsl:when test="self::glossary">
+            <xsl:text>glossary</xsl:text>
+            <xsl:if test="count(//glossary) &gt; 1">
+              <xsl:number count="glossary" level="any" format="01"/>
+            </xsl:if>
+          </xsl:when>
+          <xsl:when test="self::bibliography">
+            <xsl:text>bibliography</xsl:text>
+            <xsl:if test="count(//bibliography) &gt; 1">
+              <xsl:number count="bibliography" level="any" format="01"/>
+            </xsl:if>
+          </xsl:when>
+        </xsl:choose>
+      </xsl:otherwise>
+    </xsl:choose>
+    <xsl:text>.asciidoc</xsl:text>
   </xsl:template>
 
   <xsl:template match="part">
@@ -140,6 +148,10 @@
     <xsl:text>&#xa;--&#xa;</xsl:text>
   </xsl:template>
   
+  <!-- ===================================================================== -->
+  <!-- Chapter-level                                                         -->
+  <!-- ===================================================================== -->
+
   <xsl:template match="chapter">
     <xsl:call-template name="process-id"/>
     <xsl:text>== </xsl:text>
@@ -235,6 +247,10 @@
     <xsl:value-of select="util:carriage-returns(2)"/>
     <xsl:apply-templates select="*[not(self::title)]"/>
   </xsl:template>
+
+  <!-- ===================================================================== -->
+  <!-- Section-level                                                         -->
+  <!-- ===================================================================== -->
 
   <xsl:template match="sect1">
     <!-- If sect1 title is "References," override special Asciidoc section macro -->

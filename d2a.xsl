@@ -34,6 +34,7 @@
 
   <xsl:output method="xml" omit-xml-declaration="yes" use-character-maps="xml-reserved-chars"/>
   <xsl:param name="chunk-output">false</xsl:param>
+  <xsl:param name="chunk-sections">false</xsl:param>
   <xsl:param name="bookinfo-doc-name">book-docinfo.xml</xsl:param>
   <xsl:param name="strip-indexterms">false</xsl:param>
   <xsl:param name="glossary-passthrough">false</xsl:param>
