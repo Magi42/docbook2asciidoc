@@ -80,16 +80,21 @@
     </xsl:choose>
   </xsl:template>
 
-  <!-- Text inside paras must control its leading and trailing whitespace -->
+  <!-- Text inside paras and many other elements must control its leading and trailing whitespace -->
   <xsl:template match="para/text() | listitem/text()">
+    <xsl:call-template name="normalize-text-whitespace"/>
+  </xsl:template>
+
+  <xsl:template name="normalize-text-whitespace">
     <xsl:variable name="starts-with-whitespace">
       <xsl:value-of select="starts-with(., ' ') or starts-with(., '&#xa;') or starts-with(., '&#x9;')"/>
     </xsl:variable>
 
     <!-- Add a space if
          1) there was one originally
-         2) there's a newline after a sibling; a newline after an inline element -->
-    <xsl:if test="$starts-with-whitespace='true' and exists(preceding-sibling::element())">
+         2) there's a newline after a sibling; a newline after an inline element;
+            but not if the element was an indexterm, which will have newline -->
+    <xsl:if test="$starts-with-whitespace='true' and exists(preceding-sibling::*[1]/self::element()) and empty(preceding-sibling::*[1]/self::indexterm)">
       <xsl:text> </xsl:text>
     </xsl:if>
 
@@ -102,7 +107,7 @@
 
     <!-- Must add a space if there's an inline element following,
          but not if this text is just whitespace -->
-    <xsl:if test="exists(following-sibling::element()) and normalize-space(.) != ''">
+    <xsl:if test="exists(following-sibling::*[1]/self::element()) and normalize-space(.) != ''">
       <xsl:text> </xsl:text>
     </xsl:if>
   </xsl:template>

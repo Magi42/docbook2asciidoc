@@ -47,6 +47,9 @@
       <xsl:when test="$strip-indexterms = 'true'"/>
       <xsl:otherwise><xsl:text>(((</xsl:text><xsl:apply-templates/><xsl:text>)))</xsl:text></xsl:otherwise>
     </xsl:choose>
+
+    <!-- Without the newline, there will be trouble -->
+    <xsl:text>&#xa;</xsl:text>
   </xsl:template>
   
   <xsl:template match="indexterm[@class='startofrange'][not(*/@sortas)] | indexterm[@class='startofrange'][parent::emphasis][not(*/@sortas)]">
@@ -56,7 +59,7 @@
         <xsl:text>(((</xsl:text>
         <xsl:apply-templates/>
         <xsl:text>, id="</xsl:text>
-        <xsl:value-of select="@id"/>
+        <xsl:value-of select="@id | @xml:id"/>
         <xsl:text>", range="startofrange")))</xsl:text>
 
         <!-- Without the newlines, there will be trouble -->
@@ -89,48 +92,81 @@
       <xsl:otherwise><xsl:text>(((range="endofrange", startref="</xsl:text><xsl:value-of select="@startref"/><xsl:text>")))</xsl:text></xsl:otherwise>
     </xsl:choose>
   </xsl:template>
+
   <xsl:template match="indexterm/primary | indexterm/primary[parent::emphasis]">
     <xsl:choose>
       <xsl:when test="$strip-indexterms = 'true'"/>
-      <xsl:otherwise><xsl:text>"</xsl:text><xsl:if test="contains(., '+') or contains(., '_') or contains(., '#')">$$</xsl:if><xsl:apply-templates/><xsl:if test="contains(., '+') or contains(., '_') or contains(., '#')">$$</xsl:if><xsl:text>"</xsl:text></xsl:otherwise>
+      <xsl:otherwise>
+        <xsl:text>"</xsl:text>
+        <xsl:if test="contains(., '+') or contains(., '_') or contains(., '#')">$$</xsl:if>
+        <xsl:apply-templates/>
+        <xsl:if test="contains(., '+') or contains(., '_') or contains(., '#')">$$</xsl:if>
+        <xsl:text>"</xsl:text>
+      </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
+
   <xsl:template match="indexterm/secondary | indexterm/secondary[parent::emphasis]">
     <xsl:choose>
       <xsl:when test="$strip-indexterms = 'true'"/>
-      <xsl:otherwise><xsl:text>, "</xsl:text><xsl:if test="contains(., '+') or contains(., '_') or contains(., '#')">$$</xsl:if><xsl:apply-templates/><xsl:if test="contains(., '+') or contains(., '_') or contains(., '#')">$$</xsl:if><xsl:text>"</xsl:text></xsl:otherwise>
+      <xsl:otherwise>
+        <xsl:text>, "</xsl:text>
+        <xsl:if test="contains(., '+') or contains(., '_') or contains(., '#')">$$</xsl:if>
+        <xsl:apply-templates/>
+        <xsl:if test="contains(., '+') or contains(., '_') or contains(., '#')">$$</xsl:if>
+        <xsl:text>"</xsl:text></xsl:otherwise>
     </xsl:choose>
   </xsl:template>
+
   <xsl:template match="indexterm/tertiary | indexterm/tertiary[parent::emphasis]">
     <xsl:choose>
       <xsl:when test="$strip-indexterms = 'true'"/>
-      <xsl:otherwise><xsl:text>, "</xsl:text><xsl:if test="contains(., '+') or contains(., '_') or contains(., '#')">$$</xsl:if><xsl:apply-templates/><xsl:if test="contains(., '+') or contains(., '_') or contains(., '#')">$$</xsl:if><xsl:text>"</xsl:text></xsl:otherwise>
+      <xsl:otherwise>
+        <xsl:text>, "</xsl:text>
+        <xsl:if test="contains(., '+') or contains(., '_') or contains(., '#')">$$</xsl:if>
+        <xsl:apply-templates/>
+        <xsl:if test="contains(., '+') or contains(., '_') or contains(., '#')">$$</xsl:if>
+        <xsl:text>"</xsl:text>
+      </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
+
   <xsl:template match="indexterm/see | indexterm/see[parent::emphasis]">
     <xsl:choose>
       <xsl:when test="$strip-indexterms = 'true'"/>
-      <xsl:otherwise><xsl:text>, see="</xsl:text><xsl:if test="contains(., '+') or contains(., '_') or contains(., '#')">$$</xsl:if><xsl:apply-templates/><xsl:if test="contains(., '+') or contains(., '_') or contains(., '#')">$$</xsl:if><xsl:text>"</xsl:text></xsl:otherwise>
+      <xsl:otherwise>
+        <xsl:text>, see="</xsl:text>
+        <xsl:if test="contains(., '+') or contains(., '_') or contains(., '#')">$$</xsl:if>
+        <xsl:apply-templates/>
+        <xsl:if test="contains(., '+') or contains(., '_') or contains(., '#')">$$</xsl:if>
+        <xsl:text>"</xsl:text>
+      </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
+
   <xsl:template match="indexterm/seealso | indexterm/seealso[parent::emphasis]">
     <xsl:choose>
       <xsl:when test="$strip-indexterms = 'true'"/>
-      <xsl:otherwise><xsl:text>, seealso="</xsl:text><xsl:if test="contains(., '+') or contains(., '_') or contains(., '#')">$$</xsl:if><xsl:apply-templates/><xsl:if test="contains(., '+') or contains(., '_') or contains(., '#')">$$</xsl:if><xsl:text>"</xsl:text></xsl:otherwise>
+      <xsl:otherwise>
+        <xsl:text>, seealso="</xsl:text>
+        <xsl:if test="contains(., '+') or contains(., '_') or contains(., '#')">$$</xsl:if>
+        <xsl:apply-templates/>
+        <xsl:if test="contains(., '+') or contains(., '_') or contains(., '#')">$$</xsl:if>
+        <xsl:text>"</xsl:text>
+      </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
 
-<!-- Normalize space in indexterms -->
-<xsl:template match="indexterm/text() | indexterm/*/text()">
-  <xsl:value-of select="normalize-space(.)"/>
-</xsl:template>
+  <!-- Normalize space in indexterms -->
+  <xsl:template match="indexterm/text() | indexterm/*/text()">
+    <xsl:call-template name="normalize-text-whitespace"/>
+  </xsl:template>
 
-<xsl:template match="@*|node()" mode="copy-and-drop-indexterms">
-   <xsl:copy>
-     <xsl:apply-templates select="@*|node()" mode="copy-and-drop-indexterms"/>
-   </xsl:copy>
-</xsl:template>
+  <xsl:template match="@*|node()" mode="copy-and-drop-indexterms">
+    <xsl:copy>
+      <xsl:apply-templates select="@*|node()" mode="copy-and-drop-indexterms"/>
+    </xsl:copy>
+  </xsl:template>
 
-<xsl:template match="indexterm" mode="copy-and-drop-indexterms"/>
-
+  <xsl:template match="indexterm" mode="copy-and-drop-indexterms"/>
 </xsl:stylesheet>
