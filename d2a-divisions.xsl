@@ -51,6 +51,27 @@
     </xsl:choose>
   </xsl:template>
 
+  <xsl:template match="part">
+    <xsl:call-template name="process-id"/>
+    <xsl:text>&#xa;= </xsl:text>
+    <xsl:apply-templates select="title"/>
+    <xsl:value-of select="util:carriage-returns(2)"/>
+    <xsl:apply-templates select="*[not(self::title)]"/>
+  </xsl:template>
+
+  <xsl:template match="partintro">
+    <xsl:call-template name="process-id"/>
+    <xsl:text>&#xa;[partintro]&#xa;</xsl:text>
+    <xsl:apply-templates select="." mode="title"/>
+    <xsl:text>&#xa;--&#xa;</xsl:text>
+    <xsl:apply-templates select="*[not(self::title)]"/>
+    <xsl:text>&#xa;--&#xa;</xsl:text>
+  </xsl:template>
+
+  <!-- ===================================================================== -->
+  <!-- Chapter chunking                                                      -->
+  <!-- ===================================================================== -->
+  
   <!-- Chunk output by any chapter-level division element -->
   <xsl:template match="chapter|appendix|preface|colophon|dedication|glossary|bibliography" mode="chunk">
     <xsl:variable name="chapter-doc-name">
@@ -65,20 +86,12 @@
 
     <!-- Create the chapter-doc -->
     <xsl:result-document href="{$chapter-doc-name}">
-      <xsl:choose>
-        <!-- Chunk by chapter sections -->
-        <xsl:when test="self::chapter and $chunk-sections != 'false'">
-          <xsl:apply-templates select="*" mode="chunk"/>
-        </xsl:when>
-        <xsl:otherwise>
-          <xsl:apply-templates select="." mode="#default"/>
-        </xsl:otherwise>
-      </xsl:choose>
+      <xsl:apply-templates select="." mode="#default"/>
     </xsl:result-document>
   </xsl:template>
 
   <xsl:template name="chapter-doc-name">
-    <!-- Determine file name without extension -->
+    <!-- Determine source file name without extension -->
     <xsl:variable name="basefilename">
       <xsl:value-of select="substring-before(util:getFilename(base-uri()), '.')"/>
     </xsl:variable>
@@ -139,23 +152,6 @@
     <xsl:text>.asciidoc</xsl:text>
   </xsl:template>
 
-  <xsl:template match="part">
-    <xsl:call-template name="process-id"/>
-    <xsl:text>&#xa;= </xsl:text>
-    <xsl:apply-templates select="title"/>
-    <xsl:value-of select="util:carriage-returns(2)"/>
-    <xsl:apply-templates select="*[not(self::title)]"/>
-  </xsl:template>
-
-  <xsl:template match="partintro">
-    <xsl:call-template name="process-id"/>
-    <xsl:text>&#xa;[partintro]&#xa;</xsl:text>
-    <xsl:apply-templates select="." mode="title"/>
-    <xsl:text>&#xa;--&#xa;</xsl:text>
-    <xsl:apply-templates select="*[not(self::title)]"/>
-    <xsl:text>&#xa;--&#xa;</xsl:text>
-  </xsl:template>
-  
   <!-- ===================================================================== -->
   <!-- Chapter-level                                                         -->
   <!-- ===================================================================== -->
@@ -201,7 +197,8 @@
         <xsl:when test="$prefauth &gt; 1">
           <xsl:value-of select="concat('au',$prefauth, '=')"/>
         </xsl:when>
-      </xsl:choose> 
+      </xsl:choose>
+
       <xsl:text>"</xsl:text>
       <!--Grabbing only specific children nodes, as affiliation nodes can also show up within author nods -->
       <!--If firstname/surname:-->     
@@ -261,27 +258,36 @@
   <!-- Section-level                                                         -->
   <!-- ===================================================================== -->
 
-  <!-- Chunk output by any section-level division element -->
-  <xsl:template match="chapter/section | appendix/section | sect1" mode="chunk">
-    <xsl:variable name="sectiondocname">
-      <xsl:value-of select="util:section-doc-name(self::node())"/>
-    </xsl:variable>
+  <!-- Chunk output by any section-level division element, but only in chapters and appendices -->
+  <xsl:template match="chapter/section | appendix/section | sect1">
+    <xsl:if test="$chunk-sections != 'false'">
+      <xsl:variable name="sectiondocname">
+        <xsl:value-of select="util:section-doc-name(self::node())"/>
+      </xsl:variable>
 
-    <!-- Determine chapter-level directory name without extension -->
-    <xsl:variable name="chapterdirname">
-      <xsl:value-of select="substring-before(util:getFilename(base-uri(parent::node())), '.')"/>
-    </xsl:variable>
+      <!-- Determine chapter-level directory name without extension -->
+      <xsl:variable name="chapterdirname">
+        <xsl:value-of select="substring-before(util:getFilename(base-uri(parent::node())), '.')"/>
+      </xsl:variable>
 
-    <!-- Include the chapter-doc in the book-doc -->
-    <xsl:value-of select="util:carriage-returns(2)"/>
-    <xsl:text>include::</xsl:text>
-    <xsl:value-of select="$sectiondocname"/>
-    <xsl:text>[]</xsl:text>
+      <!-- Include the chapter-doc in the book-doc -->
+      <xsl:value-of select="util:carriage-returns(2)"/>
+      <xsl:text>include::</xsl:text>
+      <xsl:value-of select="$sectiondocname"/>
+      <xsl:text>[]</xsl:text>
 
-    <!-- Create the chapter-doc -->
-    <xsl:result-document href="{$chapterdirname}/{$sectiondocname}">
-      <xsl:apply-templates select="." mode="#default"/>
-    </xsl:result-document>
+      <!-- Create the chapter-doc -->
+      <xsl:result-document href="{$chapterdirname}/{$sectiondocname}">
+        <xsl:call-template name="process-id"/>
+        <xsl:sequence select="string-join ((for $i in (1 to count (ancestor::section | ancestor::simplesect) + 3) return '='),'')"/>
+        <xsl:text> </xsl:text>
+        <xsl:apply-templates select="title"/>
+        <xsl:value-of select="util:carriage-returns(2)"/>
+
+        <!-- Selecting . would result in infinite loop -->
+        <xsl:apply-templates select="*[not(self::title)]"/>
+      </xsl:result-document>
+    </xsl:if>
   </xsl:template>
 
   <!-- Determine the file name of the section doc -->
@@ -299,6 +305,15 @@
     <!-- Output to per-chapter sub-directory -->
     <xsl:value-of select="concat('section-', $sectionbasename, '.asciidoc')"/>
   </xsl:function>
+
+  <xsl:template match="section|simplesect">
+    <xsl:call-template name="process-id"/>
+    <xsl:sequence select="string-join ((for $i in (1 to count (ancestor::section | ancestor::simplesect) + 3) return '='),'')"/>
+    <xsl:text> </xsl:text>
+    <xsl:apply-templates select="title"/>
+    <xsl:value-of select="util:carriage-returns(2)"/>
+    <xsl:apply-templates select="*[not(self::title)]"/>
+  </xsl:template>
 
   <xsl:template match="sect1">
     <!-- If sect1 title is "References," override special Asciidoc section macro -->
@@ -378,15 +393,6 @@
       </xsl:otherwise>
     </xsl:choose>
     <xsl:text>&#xa;++++++++++++++++++++++++++++++++++++++&#xa;</xsl:text>
-  </xsl:template>
-
-  <xsl:template match="section|simplesect">
-    <xsl:call-template name="process-id"/>
-    <xsl:sequence select="string-join ((for $i in (1 to count (ancestor::section | ancestor::simplesect) + 3) return '='),'')"/>
-    <xsl:text> </xsl:text>
-    <xsl:apply-templates select="title"/>
-    <xsl:value-of select="util:carriage-returns(2)"/>
-    <xsl:apply-templates select="*[not(self::title)]"/>
   </xsl:template>
 
   <xsl:template match="title/text()">
