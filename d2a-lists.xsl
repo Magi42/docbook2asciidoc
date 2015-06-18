@@ -41,6 +41,7 @@
         <xsl:for-each select="varlistentry">
           <xsl:apply-templates select="term,listitem"/>
         </xsl:for-each>
+        <xsl:value-of select="util:carriage-returns(2)"/>
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>

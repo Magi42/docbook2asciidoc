@@ -60,7 +60,7 @@
         <xsl:apply-templates/>
         <xsl:text>, id="</xsl:text>
         <xsl:value-of select="@id | @xml:id"/>
-        <xsl:text>", range="startofrange")))</xsl:text>
+        <xsl:text>", range="startofrange")))&#xa;</xsl:text>
 
         <!-- Without the newlines, there will be trouble -->
         <xsl:text>&#xa;&#xa;</xsl:text>
@@ -72,9 +72,20 @@
     <xsl:choose>
       <xsl:when test="$strip-indexterms = 'true'"/>
       <!-- Output indexterms with @sortas and both primary and secondary indexterms as docbook passthroughs. Not supported in Asciidoc markup. -->
-      <xsl:when test="$strip-indexterms = 'false' and secondary"><xsl:text>pass:[</xsl:text><xsl:copy-of select="."/><xsl:text>]</xsl:text></xsl:when>
+      <xsl:when test="$strip-indexterms = 'false' and secondary">
+        <xsl:text>pass:[</xsl:text>
+        <xsl:copy-of select="."/>
+        <xsl:text>]</xsl:text>
+      </xsl:when>
+
       <!-- When only primary term exists, output as asciidoc -->
-      <xsl:otherwise><xsl:text>(((</xsl:text><xsl:apply-templates/><xsl:text>, sortas="</xsl:text><xsl:value-of select="primary/@sortas"/><xsl:text>")))</xsl:text></xsl:otherwise>
+      <xsl:otherwise>
+        <xsl:text>(((</xsl:text>
+        <xsl:apply-templates/>
+        <xsl:text>, sortas="</xsl:text>
+        <xsl:value-of select="primary/@sortas"/>
+        <xsl:text>")))&#xa;</xsl:text>
+      </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
   
@@ -89,7 +100,11 @@
   <xsl:template match="indexterm[@class='endofrange'] | indexterm[@class='endofrange'][parent::emphasis]">
     <xsl:choose>
       <xsl:when test="$strip-indexterms = 'true'"/>
-      <xsl:otherwise><xsl:text>(((range="endofrange", startref="</xsl:text><xsl:value-of select="@startref"/><xsl:text>")))</xsl:text></xsl:otherwise>
+      <xsl:otherwise>
+        <xsl:text>(((range="endofrange", startref="</xsl:text>
+        <xsl:value-of select="@startref"/>
+        <xsl:text>")))&#xa;</xsl:text>
+      </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
 

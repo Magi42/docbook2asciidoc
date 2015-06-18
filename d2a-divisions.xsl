@@ -79,10 +79,10 @@
     </xsl:variable>
 
     <!-- Include the chapter-doc in the book-doc -->
-    <xsl:value-of select="util:carriage-returns(2)"/>
+    <xsl:value-of select="util:carriage-returns(1)"/>
     <xsl:text>include::</xsl:text>
     <xsl:value-of select="$chapter-doc-name"/>
-    <xsl:text>[]</xsl:text>
+    <xsl:text>[]&#xa;</xsl:text>
 
     <!-- Create the chapter-doc -->
     <xsl:result-document href="{$chapter-doc-name}">
@@ -271,10 +271,10 @@
       </xsl:variable>
 
       <!-- Include the chapter-doc in the book-doc -->
-      <xsl:value-of select="util:carriage-returns(2)"/>
+      <xsl:value-of select="util:carriage-returns(1)"/>
       <xsl:text>include::</xsl:text>
       <xsl:value-of select="$sectiondocname"/>
-      <xsl:text>[]</xsl:text>
+      <xsl:text>[]&#xa;</xsl:text>
 
       <!-- Create the chapter-doc -->
       <xsl:result-document href="{$chapterdirname}/{$sectiondocname}">
@@ -286,6 +286,9 @@
 
         <!-- Selecting . would result in infinite loop -->
         <xsl:apply-templates select="*[not(self::title)]"/>
+
+        <!-- The file must end with an empty line or otherwise the title of next section will be damaged -->
+        <xsl:value-of select="util:carriage-returns(2)"/>
       </xsl:result-document>
     </xsl:if>
   </xsl:template>
@@ -306,11 +309,16 @@
     <xsl:value-of select="concat('section-', $sectionbasename, '.asciidoc')"/>
   </xsl:function>
 
-  <xsl:template match="section|simplesect">
+  <xsl:template match="section | simplesect">
     <xsl:call-template name="process-id"/>
     <xsl:sequence select="string-join ((for $i in (1 to count (ancestor::section | ancestor::simplesect) + 3) return '='),'')"/>
     <xsl:text> </xsl:text>
     <xsl:apply-templates select="title"/>
+
+    <xsl:if test="empty(title)">
+      <xsl:message>Empty section title <xsl:value-of select="@xml:id"/><xsl:value-of select="id"/>&#10;</xsl:message>
+    </xsl:if>
+
     <xsl:value-of select="util:carriage-returns(2)"/>
     <xsl:apply-templates select="*[not(self::title)]"/>
   </xsl:template>
