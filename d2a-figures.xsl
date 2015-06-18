@@ -47,13 +47,28 @@
   <xsl:value-of select="$imagenode/imagedata/@fileref"/>
 
   <xsl:variable name="scale">
-    <xsl:value-of select="$imagenode/imagedata/@scale"/>
+    <xsl:choose>
+      <!-- The smallscale attribute is a custom attribute in book-of-vaadin.
+           It is always given as percentage.
+           TODO: This should be doable in an extension point. -->
+      <xsl:when test="$imagenode/imagedata/@smallscale">
+        <xsl:value-of select="substring-before(($imagenode/imagedata/@smallscale)[1], '%')"/>
+      </xsl:when>
+
+      <!-- The scale attribute is either relative to the original image size
+           OR to the width, in which case it will have %. AsciiDoc doesn't allow that,
+           so we just make a wild assumption here. -->
+      <xsl:when test="$imagenode/imagedata/@scale">
+        <xsl:value-of select="substring-before($imagenode/imagedata/@scale, '%')"/>
+      </xsl:when>
+      <xsl:otherwise></xsl:otherwise>
+    </xsl:choose>
   </xsl:variable>
 
   <!-- Image options: scale -->
   <!-- Alt text or link are not supported -->
   <xsl:text>[</xsl:text>
-  <xsl:if test="exists($scale)">
+  <xsl:if test="exists($scale) and $scale!=''">
     <xsl:text>, </xsl:text>
     <xsl:value-of select="$scale"/>
     <xsl:text>%, </xsl:text>
