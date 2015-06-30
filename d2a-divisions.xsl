@@ -278,6 +278,7 @@
 
       <!-- Create the chapter-doc -->
       <xsl:result-document href="{$chapterdirname}/{$sectiondocname}">
+        <xsl:call-template name="section-chunk-header"/>
         <xsl:call-template name="process-id"/>
         <xsl:sequence select="string-join ((for $i in (1 to count (ancestor::section | ancestor::simplesect) + 3) return '='),'')"/>
         <xsl:text> </xsl:text>
@@ -308,6 +309,9 @@
     <!-- Output to per-chapter sub-directory -->
     <xsl:value-of select="concat('section-', $sectionbasename, '.asciidoc')"/>
   </xsl:function>
+
+  <!-- Extension point for adding a header to section chunks -->
+  <xsl:template name="section-chunk-header"/>
 
   <xsl:template match="section | simplesect">
     <xsl:call-template name="process-id"/>
