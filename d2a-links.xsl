@@ -76,7 +76,8 @@
             <xsl:value-of select="concat('section-', replace($sectionid, '\.', '-'))"/>
           </xsl:variable>
 
-          <xsl:value-of select="concat($sectionbasename, '.asciidoc')"/>
+          <!-- File extension could be given, but is not needed -->
+          <xsl:value-of select="$sectionbasename"/>
         </xsl:when>
 
         <!-- Not inside a section chunk -->
