@@ -44,7 +44,9 @@
     </xsl:choose>
   </xsl:variable>
 
-  <xsl:value-of select="$imagenode/imagedata/@fileref"/>
+  <xsl:call-template name="process-imagedata-fileref">
+    <xsl:with-param name="fileref" select="$imagenode/imagedata[1]/@fileref"/>
+  </xsl:call-template>
 
   <xsl:variable name="scale">
     <xsl:choose>
@@ -85,6 +87,13 @@
       <xsl:value-of select="util:carriage-returns(1)"/>
     </xsl:otherwise>
   </xsl:choose>
+</xsl:template>
+
+<!-- Returns the path to the image file.
+     You can override this to alter the filename or path. -->
+<xsl:template name="process-imagedata-fileref">
+  <xsl:param name="fileref"/>
+  <xsl:value-of select="$fileref"/>
 </xsl:template>
 
 <xsl:template match="inlinemediaobject">image:<xsl:value-of select="imageobject[@role='web']/imagedata/@fileref"/>[]</xsl:template>
