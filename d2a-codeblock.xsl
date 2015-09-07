@@ -375,6 +375,8 @@
                     <xsl:value-of select="util:carriage-returns(1)"/>
                   </xsl:when>
                   <xsl:otherwise>
+                    <xsl:value-of select="util:carriage-returns(1)"/>
+                    <xsl:call-template name="listing-footer"/>
                     <xsl:value-of select="util:carriage-returns(2)"/>
                   </xsl:otherwise>
                 </xsl:choose>
@@ -389,6 +391,9 @@
   <!-- Passthrough code block text should not be normalized -->
   <xsl:template match="programlisting/text() | screen/text()">
     <xsl:value-of select="."/>
+  </xsl:template>
+
+  <xsl:template name="listing-footer">
   </xsl:template>
 
   <!-- ======================================================================= -->
