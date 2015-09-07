@@ -98,7 +98,14 @@
 
     <!-- Output to sub-directory if section-level chunking is enabled -->
     <xsl:if test="self::chapter and $chunk-sections != 'false'">
-      <xsl:value-of select="concat($basefilename, '/')"/>
+      <!-- Directory name for the chapter chunk -->
+      <xsl:variable name="chapterdirname">
+        <xsl:call-template name="generate-chapter-dirname">
+          <xsl:with-param name="original-basename" select="$basefilename"/>
+        </xsl:call-template>
+      </xsl:variable>
+
+      <xsl:value-of select="concat($chapterdirname, '/')"/>
     </xsl:if>
 
     <xsl:choose>
@@ -267,7 +274,9 @@
 
       <!-- Determine chapter-level directory name without extension -->
       <xsl:variable name="chapterdirname">
-        <xsl:value-of select="substring-before(util:getFilename(base-uri(parent::node())), '.')"/>
+        <xsl:call-template name="generate-chapter-dirname">
+          <xsl:with-param name="original-basename" select="substring-before(util:getFilename(base-uri(parent::node())), '.')"/>
+        </xsl:call-template>
       </xsl:variable>
 
       <!-- Include the chapter-doc in the book-doc -->
@@ -294,6 +303,13 @@
     </xsl:if>
   </xsl:template>
 
+  <!-- Generate chapter directory name -->
+  <xsl:template name="generate-chapter-dirname">
+    <xsl:param name="original-basename"/>
+
+    <xsl:value-of select="$original-basename"/>
+  </xsl:template>
+
   <!-- Determine the file name of the section doc -->
   <xsl:function name="util:section-doc-name">
     <xsl:param name="node"/>
@@ -303,11 +319,13 @@
     </xsl:variable>
 
     <xsl:variable name="sectionbasename">
-      <xsl:value-of select="replace($sectionid, '\.', '-')"/>
+      <xsl:call-template name="generate-section-basename">
+        <xsl:with-param name="sectionid" select="$sectionid"/>
+      </xsl:call-template>
     </xsl:variable>
 
     <!-- Output to per-chapter sub-directory -->
-    <xsl:value-of select="concat('section-', $sectionbasename, '.asciidoc')"/>
+    <xsl:value-of select="concat($sectionbasename, '.asciidoc')"/>
   </xsl:function>
 
   <!-- Extension point for adding a header to section chunks -->

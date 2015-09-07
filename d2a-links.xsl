@@ -38,7 +38,9 @@
     <!-- Chunk filename is only needed if it's different from the current file -->
     <xsl:choose>
       <xsl:when test="$linkend-filename != $current-filename">
-        <xsl:value-of select="$linkend-filename"/>
+        <xsl:call-template name="generate-interdoc-xref">
+          <xsl:with-param name="linkend-filename" select="$linkend-filename"/>
+        </xsl:call-template>
       </xsl:when>
       <xsl:otherwise>
         <xsl:message>In same file: <xsl:value-of select="$linkend"/> is in <xsl:value-of select="$linkend-filename"/></xsl:message>
@@ -47,7 +49,9 @@
 
     <!-- And then the actual ID -->
     <xsl:text>#</xsl:text>
-    <xsl:value-of select="$linkend"/>
+    <xsl:call-template name="generate-xref-urifragment">
+      <xsl:with-param name="linkend" select="$linkend"/>
+    </xsl:call-template>
 
     <!-- Include the title -->
     <xsl:text>,"</xsl:text>
@@ -56,11 +60,46 @@
     <xsl:text>"&#xE802;&#xE802;</xsl:text>
   </xsl:template>
 
+  <!-- Extension hook to allow modifying all inter-document cross-references -->
+  <xsl:template name="generate-interdoc-xref">
+    <xsl:param name="linkend-filename"/>
+    <xsl:value-of select="$linkend-filename"/>
+  </xsl:template>
+
+  <!-- Extension hook to allow modifying URI fragment of xrefs -->
+  <xsl:template name="generate-xref-urifragment">
+    <xsl:param name="linkend"/>
+    <xsl:value-of select="$linkend"/>
+  </xsl:template>
+
   <!-- id-chunk
        Determines the file name by ID.
        Uses the same logic as when generating file names in d2a-divisions.xsl. -->
   <xsl:template name="id-chunk">
     <xsl:param name="id"/>
+
+    <!-- Find the URI of the file in which the linkend ID resides -->
+    <xsl:variable name="sourceuri">
+      <xsl:value-of select="base-uri(//*[@xml:id=$id])"/>
+    </xsl:variable>
+
+    <!-- If chunking, start with path to the chapter chunking directory -->
+    <!-- TODO: Maybe this should be handled in an overridable generator,
+               not sure if everything works if chunking is disabled. -->
+    <xsl:if test="$chunk-sections != 'false'">
+      <xsl:call-template name="generate-chapter-dirname">
+        <xsl:with-param name="original-basename" select="substring-before(util:getFilename($sourceuri), '.')"/>
+      </xsl:call-template>
+
+      <xsl:text>/</xsl:text>
+    </xsl:if>
+
+    <!-- Determine base file name of the chapter file -->
+    <xsl:variable name="chapterbasefilename">
+        <xsl:call-template name="generate-chapter-xref-basename">
+          <xsl:with-param name="filename" select="substring-before(util:getFilename($sourceuri), '.')"/>
+        </xsl:call-template>
+    </xsl:variable>
 
     <xsl:variable name="chunkpath">
       <xsl:choose>
@@ -73,24 +112,17 @@
           </xsl:variable>
 
           <xsl:variable name="sectionbasename">
-            <xsl:value-of select="concat('section-', replace($sectionid, '\.', '-'))"/>
+            <xsl:call-template name="generate-section-basename">
+              <xsl:with-param name="sectionid" select="$sectionid"/>
+            </xsl:call-template>
           </xsl:variable>
 
           <!-- File extension could be given, but is not needed -->
           <xsl:value-of select="$sectionbasename"/>
         </xsl:when>
 
-        <!-- Not inside a section chunk -->
+        <!-- Not inside a section chunk - must be in chapter-level division file or similar -->
         <xsl:otherwise>
-          <xsl:variable name="sourceuri">
-            <xsl:value-of select="base-uri(//*[@xml:id=$id])"/>
-          </xsl:variable>
-
-          <!-- Determine base file name -->
-          <xsl:variable name="chapterbasefilename">
-            <xsl:value-of select="substring-before(util:getFilename($sourceuri), '.')"/>
-          </xsl:variable>
-
           <xsl:value-of select="concat($chapterbasefilename, '.asciidoc')"/>
         </xsl:otherwise>
       </xsl:choose>
@@ -98,6 +130,18 @@
 
     <!-- <xsl:message><xsl:value-of select="$chunkpath"/></xsl:message>  -->
     <xsl:value-of select="$chunkpath"/>
+  </xsl:template>
+
+  <xsl:template name="generate-chapter-xref-basename">
+    <xsl:param name="filename"/>
+
+    <xsl:value-of select="$filename"/>
+  </xsl:template>
+
+  <xsl:template name="generate-section-basename">
+    <xsl:param name="sectionid"/>
+
+    <xsl:value-of select="concat('section-', replace($sectionid, '\.', '-'))"/>
   </xsl:template>
 
   <!-- ===================================================================== -->
