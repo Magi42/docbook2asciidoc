@@ -91,35 +91,37 @@
       <xsl:text>"]&#xa;</xsl:text>
     </xsl:if>
 
-    <xsl:for-each select="listitem">
-      <xsl:choose>
-        <xsl:when test="parent::itemizedlist">
-          <xsl:text>* </xsl:text>
-        </xsl:when>
-        <xsl:when test="parent::orderedlist">
-          <xsl:text>. </xsl:text>
-        </xsl:when>
-      </xsl:choose>
+    <xsl:apply-templates/>
 
-      <xsl:choose>
-        <xsl:when test="para">
-          <xsl:apply-templates/>
-        </xsl:when>
-
-        <xsl:otherwise>
-          <!-- If there's no para inside, text has to be wrapped and newline
-               added as they were inside a para.
-               This is copied from para template. -->
-          <xsl:call-template name="rewrap-para"/>
-          <xsl:text>&#xa;</xsl:text>
-        </xsl:otherwise>
-      </xsl:choose>
-    </xsl:for-each>
     <xsl:text>&#xa;</xsl:text>
   </xsl:template>
 
+  <!-- Listitem can contain:
+       - Text
+       - Paragraph with text inside
+       - Elements
+       - Sub-list
+  -->
   <xsl:template match="listitem">
-    <xsl:apply-templates select="node()"/>
+    <xsl:choose>
+      <xsl:when test="parent::itemizedlist">
+        <xsl:value-of select="substring('*****', 1, count(ancestor::listitem) + 1)"/>
+        <xsl:text> </xsl:text>
+      </xsl:when>
+      <xsl:when test="parent::orderedlist">
+        <xsl:value-of select="substring('.....', 1, count(ancestor::listitem) + 1)"/>
+        <xsl:text> </xsl:text>
+      </xsl:when>
+      <xsl:otherwise>
+      </xsl:otherwise>
+    </xsl:choose>
+
+    <xsl:apply-templates/>
+
+    <!-- Newline is needed if there was no terminating para element that contains one -->
+    <xsl:if test="not(exists(para))">
+      <xsl:text>&#xa;</xsl:text>
+    </xsl:if>
   </xsl:template>
 
   <xsl:template match="simplelist">

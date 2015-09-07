@@ -69,15 +69,8 @@
       <xsl:value-of select="replace(concat($content,' '), '(.{0,80}) ', '$1&#xa;')"/>
     </xsl:variable>
 
-    <!-- Remove trailing newline -->
-    <xsl:choose>
-      <xsl:when test="ends-with($wrapped, '&#xa;')">
-        <xsl:value-of select="substring($wrapped, 1, string-length($wrapped) - 1)"/>
-      </xsl:when>
-      <xsl:otherwise>
-        <xsl:value-of select="$wrapped"/>
-      </xsl:otherwise>
-    </xsl:choose>
+    <!-- Remove trailing newlines and other extra whitespace -->
+    <xsl:value-of select="replace($wrapped, '\s+$', '')"/>
   </xsl:template>
 
   <!-- Text inside paras and many other elements must control its leading and trailing whitespace -->
