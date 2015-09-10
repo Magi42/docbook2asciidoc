@@ -283,13 +283,17 @@
       <xsl:value-of select="util:carriage-returns(1)"/>
       <xsl:text>include::</xsl:text>
       <xsl:value-of select="$sectiondocname"/>
-      <xsl:text>[]&#xa;</xsl:text>
+      <xsl:text>[leveloffset=+2]&#xa;</xsl:text>
 
       <!-- Create the chapter-doc -->
       <xsl:result-document href="{$chapterdirname}/{$sectiondocname}">
         <xsl:call-template name="section-chunk-header"/>
         <xsl:call-template name="process-id"/>
-        <xsl:sequence select="string-join ((for $i in (1 to count (ancestor::section | ancestor::simplesect) + 3) return '='),'')"/>
+
+        <!-- Section level -->
+        <!-- We add +1 to section level to make sections 1st-level for HTML version, and use leveloffset for print edition -->
+        <xsl:sequence select="string-join ((for $i in (1 to count (ancestor::section | ancestor::simplesect) + 1) return '='),'')"/>
+
         <xsl:text> </xsl:text>
         <xsl:apply-templates select="title"/>
         <xsl:value-of select="util:carriage-returns(2)"/>
@@ -333,7 +337,18 @@
 
   <xsl:template match="section | simplesect">
     <xsl:call-template name="process-id"/>
-    <xsl:sequence select="string-join ((for $i in (1 to count (ancestor::section | ancestor::simplesect) + 3) return '='),'')"/>
+
+    <!-- Section level and title -->
+    <!-- When not chunking, sections have level 3, but when chunking, level 1 in HTML version,
+         which is adjusted to level 3 with leveloffset for the print (DocBook) version -->
+    <xsl:choose>
+      <xsl:when test="$chunk-sections != 'false'">
+        <xsl:sequence select="string-join ((for $i in (1 to count (ancestor::section | ancestor::simplesect) + 1) return '='),'')"/>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:sequence select="string-join ((for $i in (1 to count (ancestor::section | ancestor::simplesect) + 3) return '='),'')"/>
+      </xsl:otherwise>
+    </xsl:choose>
     <xsl:text> </xsl:text>
     <xsl:apply-templates select="title"/>
 
