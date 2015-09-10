@@ -162,7 +162,11 @@
 
   <!-- Quote the text inside literals -->
   <xsl:template match="literal/text()">
-    <xsl:value-of select="replace(replace(replace(., '\n\s+', ' ', 'm'), 'C\+\+', '\$\$C++\$\$', 'm'), '([\[\]\*\^~])', '\\$1', 'm')"/>
+    <!-- Literal text often contains quoted elements -->
+    <xsl:variable name="unquoted">
+      <xsl:value-of select="replace(replace(replace(., '&lt;', '&#xE801;', 'm'), '&gt;', '&#xE802;', 'm'), '&amp;', '&#xE803;', 'm')" disable-output-escaping="yes"/>
+    </xsl:variable>
+    <xsl:value-of select="replace(replace(replace($unquoted, '\n\s+', ' ', 'm'), 'C\+\+', '\$\$C++\$\$', 'm'), '([\[\]\*\^~])', '\\$1', 'm')" disable-output-escaping="yes"/>
   </xsl:template>
   
   <xsl:template match="userinput">**`<xsl:apply-templates />`**</xsl:template>
