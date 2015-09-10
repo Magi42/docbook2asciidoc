@@ -27,37 +27,37 @@
         <xsl:with-param name="id" select="$linkend"/>
       </xsl:call-template>
     </xsl:variable>
-    <!-- <xsl:message>Linkend-filename: <xsl:value-of select="$linkend"/> is <xsl:value-of select="$linkend-filename"/></xsl:message> -->
 
     <xsl:variable name="current-filename">
       <xsl:call-template name="id-chunk">
-        <xsl:with-param name="id" select="(ancestor::*[@xml:id!=''])[1]/@xml:id"/>
+        <xsl:with-param name="id" select="(ancestor-or-self::*[@xml:id!=''])[last()]/@xml:id"/>
       </xsl:call-template>
     </xsl:variable>
+    <!-- <xsl:message>Linkend-filename: <xsl:value-of select="$linkend"/> is <xsl:value-of select="$linkend-filename"/> and current ID <xsl:value-of select="(ancestor-or-self::*[@xml:id!=''])[last()]/@xml:id"/> and file is <xsl:value-of select="$current-filename"/></xsl:message> -->
 
     <!-- Chunk filename is only needed if it's different from the current file -->
-    <xsl:choose>
-      <xsl:when test="$linkend-filename != $current-filename">
-        <xsl:call-template name="generate-interdoc-xref">
-          <xsl:with-param name="linkend-filename" select="$linkend-filename"/>
-        </xsl:call-template>
-      </xsl:when>
-      <xsl:otherwise>
-        <xsl:message>In same file: <xsl:value-of select="$linkend"/> is in <xsl:value-of select="$linkend-filename"/></xsl:message>
-      </xsl:otherwise>
-    </xsl:choose>
+    <xsl:if test="$linkend-filename != $current-filename">
+      <xsl:call-template name="generate-interdoc-xref">
+        <xsl:with-param name="linkend-filename" select="$linkend-filename"/>
+      </xsl:call-template>
+
+      <!-- Only needed for cross-document xrefs -->
+      <xsl:text>#</xsl:text>
+    </xsl:if>
 
     <!-- And then the actual ID -->
-    <xsl:text>#</xsl:text>
     <xsl:call-template name="generate-xref-urifragment">
       <xsl:with-param name="linkend" select="$linkend"/>
     </xsl:call-template>
 
-    <!-- Include the title -->
-    <xsl:text>,"</xsl:text>
-    <xsl:value-of select="//*[@xml:id=$linkend]/title"/>
+    <!-- Include the title if in different file -->
+    <xsl:if test="$linkend-filename != $current-filename">
+      <xsl:text>,"</xsl:text>
+      <xsl:value-of select="//*[@xml:id=$linkend]/title"/>
+      <xsl:text>"</xsl:text>
+    </xsl:if>
 
-    <xsl:text>"&#xE802;&#xE802;</xsl:text>
+    <xsl:text>&#xE802;&#xE802;</xsl:text>
   </xsl:template>
 
   <!-- Extension hook to allow modifying all inter-document cross-references -->
