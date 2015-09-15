@@ -46,6 +46,7 @@
   </xsl:template>
 
   <xsl:template match="tip|warning|note|caution|important">
+    <xsl:call-template name="conditional-block-element-start"/>
     <xsl:call-template name="process-id"/>
     <xsl:text>&#xa;[</xsl:text>
     <xsl:value-of select="upper-case(name())"/>
@@ -54,6 +55,8 @@
     <xsl:text>====&#xa;</xsl:text>
     <xsl:apply-templates select="node()[not(self::title)]"/>
     <xsl:text>====&#xa;</xsl:text>
+    <xsl:value-of select="util:carriage-returns(1)"/>
+    <xsl:call-template name="conditional-block-element-end"/>
     <xsl:value-of select="util:carriage-returns(2)"/>
   </xsl:template>
 

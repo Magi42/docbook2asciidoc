@@ -195,6 +195,8 @@
   <!-- ======================================================================= -->
 
   <xsl:template match="programlisting | screen">
+    <xsl:call-template name="conditional-block-element-start"/>
+
     <xsl:choose>
       <!-- Contains child <co> elements -->
       <xsl:when test="co">
@@ -352,12 +354,13 @@
                 <xsl:apply-templates mode="code"/>
                 <xsl:value-of select="util:carriage-returns(1)"/>
                 <xsl:text>....</xsl:text>
-                <xsl:choose>
-                  <xsl:when test="ancestor::listitem and preceding-sibling::element()">
-                    <xsl:value-of select="util:carriage-returns(1)"/>
-                  </xsl:when>
-                  <xsl:otherwise><xsl:value-of select="util:carriage-returns(2)"/></xsl:otherwise>
-                </xsl:choose>
+                <xsl:value-of select="util:carriage-returns(1)"/>
+                <xsl:call-template name="listing-footer"/>
+                <xsl:call-template name="conditional-block-element-end"/>
+
+                <xsl:if test="not(ancestor::listitem and preceding-sibling::element())">
+                  <xsl:value-of select="util:carriage-returns(1)"/>
+                </xsl:if>
               </xsl:when>
 
               <xsl:otherwise>
@@ -370,16 +373,13 @@
                 <xsl:apply-templates mode="code"/>
                 <xsl:value-of select="util:carriage-returns(1)"/>
                 <xsl:text>----</xsl:text>
-                <xsl:choose>
-                  <xsl:when test="ancestor::listitem and preceding-sibling::element()">
-                    <xsl:value-of select="util:carriage-returns(1)"/>
-                  </xsl:when>
-                  <xsl:otherwise>
-                    <xsl:value-of select="util:carriage-returns(1)"/>
-                    <xsl:call-template name="listing-footer"/>
-                    <xsl:value-of select="util:carriage-returns(2)"/>
-                  </xsl:otherwise>
-                </xsl:choose>
+                <xsl:value-of select="util:carriage-returns(1)"/>
+                <xsl:call-template name="listing-footer"/>
+                <xsl:call-template name="conditional-block-element-end"/>
+
+                <xsl:if test="not(ancestor::listitem and preceding-sibling::element())">
+                  <xsl:value-of select="util:carriage-returns(1)"/>
+                </xsl:if>
               </xsl:otherwise>
             </xsl:choose>
           </xsl:otherwise>

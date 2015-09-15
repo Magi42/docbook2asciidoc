@@ -82,6 +82,7 @@
   <!-- ======================================================================= -->
 
   <xsl:template match="itemizedlist | orderedlist">
+    <xsl:call-template name="conditional-block-element-start"/>
     <xsl:call-template name="process-id"/>
 
     <!-- Optional list style options -->
@@ -93,6 +94,7 @@
 
     <xsl:apply-templates/>
 
+    <xsl:call-template name="conditional-block-element-end"/>
     <xsl:text>&#xa;</xsl:text>
   </xsl:template>
 
@@ -103,6 +105,8 @@
        - Sub-list
   -->
   <xsl:template match="listitem">
+    <xsl:call-template name="conditional-block-element-start"/>
+
     <xsl:choose>
       <xsl:when test="parent::itemizedlist">
         <xsl:value-of select="substring('*****', 1, count(ancestor::listitem) + 1)"/>
@@ -122,6 +126,8 @@
     <xsl:if test="not(exists(para))">
       <xsl:text>&#xa;</xsl:text>
     </xsl:if>
+
+    <xsl:call-template name="conditional-block-element-end"/>
   </xsl:template>
 
   <xsl:template match="simplelist">

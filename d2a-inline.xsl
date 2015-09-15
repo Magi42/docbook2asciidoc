@@ -13,7 +13,31 @@
   exclude-result-prefixes="util">
 
   <xsl:template match="phrase">
-    <xsl:apply-templates />
+    <xsl:choose>
+      <!-- Markup inside a conditional phrase -->
+      <xsl:when test="exists(@condition) and exists(element())">
+        <!-- Use the rough way, which may cause some additional whitespace in the text -->
+        <xsl:text>&#xa;</xsl:text>
+        <xsl:call-template name="conditional-block-element-start"/>
+        <xsl:apply-templates />
+        <xsl:text>&#xa;</xsl:text>
+        <xsl:call-template name="conditional-block-element-end"/>
+      </xsl:when>
+
+      <!-- No markup inside a conditional phrase -->
+      <xsl:when test="exists(@condition)">
+        <!-- This way is a bit more gentle with regards to whitespace, but may not contain inner markup -->
+        <xsl:text>&#xa;ifdef::</xsl:text>
+        <xsl:value-of select="@condition"/>
+        <xsl:text>[</xsl:text>
+        <xsl:apply-templates />
+        <xsl:text>]</xsl:text>
+      </xsl:when>
+
+      <xsl:otherwise>
+        <xsl:apply-templates />
+      </xsl:otherwise>
+    </xsl:choose>
   </xsl:template>
 
   <!-- ===================================================================== -->
@@ -230,21 +254,28 @@
   <!-- Menu choices                                                          -->
   <!-- ===================================================================== -->
   <xsl:template match="menuchoice">
-    <xsl:text>menu:</xsl:text>
-    <xsl:for-each select="guimenu | guisubmenu | guimenuitem">
-      <xsl:if test="position()=2">
-        <xsl:text>[</xsl:text>
-      </xsl:if>
+    <!-- The freeform format does not work for single-level menu choices. -->
+    <!-- The menu: macro would work with those, but it doesn't support whitespace
+         or special characters in the first choice. -->
+    <xsl:choose>
+      <!-- Single-choice menu choices: just apply a style -->
+      <xsl:when test="count(guimenu | guisubmenu | guimenuitem) = 1">
+        <xsl:text>[menuchoice]#</xsl:text>
+        <xsl:value-of select="normalize-space(.)"/>
+        <xsl:text>#</xsl:text>
+      </xsl:when>
 
-      <xsl:if test="position()>2">
-        <xsl:text> &gt; </xsl:text>
-      </xsl:if>
-
-      <xsl:value-of select="normalize-space(.)"/>
-    </xsl:for-each>
-
-    <xsl:if test="count(guimenu | guisubmenu | guimenuitem) > 1">
-      <xsl:text>]</xsl:text>
-    </xsl:if>
+      <!-- Multi-choice menu choices -->
+      <xsl:otherwise>
+        <xsl:text>"</xsl:text>
+        <xsl:for-each select="guimenu | guisubmenu | guimenuitem">
+          <xsl:if test="position() > 1">
+            <xsl:text> &#xE802; </xsl:text>
+          </xsl:if>
+          <xsl:value-of select="normalize-space(.)"/>
+        </xsl:for-each>
+        <xsl:text>"</xsl:text>
+      </xsl:otherwise>
+    </xsl:choose>
   </xsl:template>
 </xsl:stylesheet>

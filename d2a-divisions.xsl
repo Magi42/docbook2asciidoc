@@ -336,6 +336,7 @@
   <xsl:template name="section-chunk-header"/>
 
   <xsl:template match="section | simplesect">
+    <xsl:call-template name="conditional-block-element-start"/>
     <xsl:call-template name="process-id"/>
 
     <!-- Section level and title -->
@@ -358,6 +359,9 @@
 
     <xsl:value-of select="util:carriage-returns(2)"/>
     <xsl:apply-templates select="*[not(self::title)]"/>
+
+    <xsl:call-template name="conditional-block-element-end"/>
+    <xsl:value-of select="util:carriage-returns(1)"/>
   </xsl:template>
 
   <xsl:template match="sect1">

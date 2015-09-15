@@ -13,7 +13,10 @@
   exclude-result-prefixes="util">
 
 <!-- figure -->
-<xsl:template match="figure | informalfigure">
+<!-- Screenshots are treated as equal to normal figures -->
+<xsl:template match="figure | informalfigure | screenshot">
+  <xsl:call-template name="conditional-block-element-start"/>
+
   <!-- In lists -->
   <xsl:if test="ancestor::listitem and preceding-sibling::element()">
     <xsl:text>+</xsl:text><xsl:value-of select="util:carriage-returns(1)"/>
@@ -78,15 +81,11 @@
     <xsl:text>%</xsl:text>
   </xsl:if>
   <xsl:text>]&#xa;</xsl:text>
+  <xsl:call-template name="conditional-block-element-end"/>
 
-  <xsl:choose>
-    <!-- In lists -->
-    <xsl:when test="ancestor::listitem and following-sibling::element()"/>
-
-    <xsl:otherwise>
-      <xsl:value-of select="util:carriage-returns(1)"/>
-    </xsl:otherwise>
-  </xsl:choose>
+  <!-- Always have an empty line after image. -->
+  <!-- In lists, this is especially needed, because otherwise, a following "+" line is ineffective -->
+  <xsl:value-of select="util:carriage-returns(1)"/>
 </xsl:template>
 
 <!-- Returns the path to the image file.

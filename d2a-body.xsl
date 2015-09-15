@@ -16,6 +16,8 @@
  exclude-result-prefixes="util">
 
   <xsl:template match="para|simpara">
+    <xsl:call-template name="conditional-block-element-start"/>
+
     <xsl:choose>
       <xsl:when test="ancestor::callout"/>
       <xsl:otherwise>
@@ -44,6 +46,7 @@
     <!-- Include cleaned paragraph text: unindent, etc. -->
     <xsl:call-template name="rewrap-para"/>
     <xsl:text>&#xa;</xsl:text>
+    <xsl:call-template name="conditional-block-element-end"/>
 
     <!-- Control number of blank lines following para, if it's inside a listitem or glossary -->
     <xsl:choose>

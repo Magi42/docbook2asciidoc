@@ -54,6 +54,24 @@
     </xsl:if>
   </xsl:template>
 
+  <!-- Start conditional block element -->
+  <xsl:template name="conditional-block-element-start">
+    <xsl:if test="exists(@condition)">
+      <xsl:text>ifdef::</xsl:text>
+      <xsl:value-of select="@condition"/>
+      <xsl:text>[]&#xa;</xsl:text>
+    </xsl:if>
+  </xsl:template>
+
+  <!-- End conditional block element -->
+  <xsl:template name="conditional-block-element-end">
+    <xsl:if test="exists(@condition)">
+      <xsl:text>endif::</xsl:text>
+      <xsl:value-of select="@condition"/>
+      <xsl:text>[]&#xa;</xsl:text>
+    </xsl:if>
+  </xsl:template>
+
   <!-- Extracts filename from path after last slash -->
   <xsl:function name="util:getFilename">
     <xsl:param name="uri"/>
