@@ -52,22 +52,9 @@
   </xsl:call-template>
 
   <xsl:variable name="scale">
-    <xsl:choose>
-      <!-- The smallscale attribute is a custom attribute in book-of-vaadin.
-           It is always given as percentage.
-           TODO: This should be doable in an extension point. -->
-      <xsl:when test="$imagenode/imagedata/@smallscale">
-        <xsl:value-of select="substring-before(($imagenode/imagedata/@smallscale)[1], '%')"/>
-      </xsl:when>
-
-      <!-- The scale attribute is either relative to the original image size
-           OR to the width, in which case it will have %. AsciiDoc doesn't allow that,
-           so we just make a wild assumption here. -->
-      <xsl:when test="$imagenode/imagedata/@scale">
-        <xsl:value-of select="substring-before($imagenode/imagedata/@scale, '%')"/>
-      </xsl:when>
-      <xsl:otherwise></xsl:otherwise>
-    </xsl:choose>
+    <xsl:call-template name="process-image-scale">
+      <xsl:with-param name="imagenode" select="$imagenode"/>
+    </xsl:call-template>
   </xsl:variable>
 
   <!-- Image options: scale -->
@@ -86,6 +73,12 @@
   <!-- Always have an empty line after image. -->
   <!-- In lists, this is especially needed, because otherwise, a following "+" line is ineffective -->
   <xsl:value-of select="util:carriage-returns(1)"/>
+</xsl:template>
+
+<!-- Returns image scaling parameter -->
+<xsl:template name="process-image-scale">
+  <xsl:param name="imagenode"/>
+  <xsl:value-of select="substring-before($imagenode/imagedata/@scale, '%')"/>
 </xsl:template>
 
 <!-- Returns the path to the image file.
