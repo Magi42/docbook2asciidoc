@@ -17,8 +17,12 @@
       <!-- Markup inside a conditional phrase -->
       <xsl:when test="exists(@condition) and exists(element())">
         <!-- Use the rough way, which may cause some additional whitespace in the text -->
-        <xsl:text>&#xa;</xsl:text>
+        <!-- For some reason, there is an extra newline in lists, so we have to continue list text. -->
+        <xsl:if test="not(ancestor::listitem)">
+          <xsl:text>&#xa;</xsl:text>
+        </xsl:if>
         <xsl:call-template name="conditional-block-element-start"/>
+
         <xsl:apply-templates />
         <xsl:text>&#xa;</xsl:text>
         <xsl:call-template name="conditional-block-element-end"/>
