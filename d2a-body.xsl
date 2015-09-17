@@ -89,7 +89,11 @@
     <!-- Add a space if
          1) there was one originally
          2) there's a newline after a sibling; a newline after an inline element;
-            but not if the element was an indexterm, which will have newline -->
+            but not if the element was an indexterm, which will have newline
+         Problem: Extra newline is also added after an inline comment,
+                  which will cause trouble at the beginning of a line.
+                  I have no idea how to detect if the preceding node is a comment.
+     -->
     <xsl:if test="$starts-with-whitespace='true' and exists(preceding-sibling::*[1]/self::element()) and empty(preceding-sibling::*[1]/self::indexterm)">
       <xsl:text> </xsl:text>
     </xsl:if>

@@ -16,8 +16,6 @@
 
   <!-- XML comments -->
   <xsl:template match="//comment()">
-    <xsl:text>&#xa;</xsl:text>
-
     <!-- If a comment is inside a list, it needs continuation or otherwise it will break the list -->
     <xsl:if test="ancestor::listitem and preceding-sibling::element()">
       <xsl:text>+&#xa;</xsl:text>
@@ -26,13 +24,13 @@
     <xsl:choose>
       <xsl:when test="contains(., '&#xa;')">
         <xsl:text>////&#xa;</xsl:text>
-        <xsl:copy/>
+        <xsl:value-of select="normalize-space(.)"/>
         <xsl:text>&#xa;////&#xa;</xsl:text>
       </xsl:when>
 
       <xsl:otherwise>
         <xsl:text>// </xsl:text>
-        <xsl:value-of select="."/>
+        <xsl:value-of select="normalize-space(.)"/>
         <xsl:text>&#xa;</xsl:text>
       </xsl:otherwise>
     </xsl:choose>
