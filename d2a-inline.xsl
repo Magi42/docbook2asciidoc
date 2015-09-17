@@ -18,7 +18,7 @@
       <xsl:when test="exists(@condition) and exists(element())">
         <!-- Use the rough way, which may cause some additional whitespace in the text -->
         <!-- For some reason, there is an extra newline in lists, so we have to continue list text. -->
-        <xsl:if test="not(ancestor::listitem)">
+        <xsl:if test="not(ancestor::variablelist)">
           <xsl:text>&#xa;</xsl:text>
         </xsl:if>
         <xsl:call-template name="conditional-block-element-start"/>
@@ -49,9 +49,21 @@
   <!-- ===================================================================== -->
 
   <!-- Bold emphasis -->
-  <xsl:template match="emphasis[@role='bold'] | emphasis[@role='strong']">
+  <!-- We also convert replaceable as bold; converting it to custom class does
+       not work in pass:quote macros, where it is often used. -->
+  <xsl:template match="emphasis[@role='bold'] | emphasis[@role='strong'] | replaceable">
     <xsl:text>**</xsl:text>
-    <xsl:apply-templates />
+    
+    <xsl:variable name="content">
+      <xsl:apply-templates />
+    </xsl:variable>
+    <xsl:value-of select="$content"/>
+
+    <!-- Often the emphasized text ends with '*', which would lead to invalid formatting, so we add '**' to make it '***' -->
+    <xsl:if test="ends-with($content, '*')">
+      <xsl:text>**</xsl:text>
+    </xsl:if>
+
     <xsl:text>**</xsl:text>
   </xsl:template>
 
@@ -81,13 +93,6 @@
     </xsl:if>
   </xsl:template>
 
-  <xsl:template match="replaceable">
-    <xsl:choose>
-      <xsl:when test="parent::literal">__<xsl:apply-templates />__</xsl:when>
-      <xsl:otherwise>__++<xsl:apply-templates />++__</xsl:otherwise>
-    </xsl:choose>
-  </xsl:template>
-
   <!-- Normalize-space() on text node below includes extra handling for child elements of
        replaceable, to add needed spaces back in. (They're removed by normalize-space(), which
        normalizes the two text nodes separately.) -->
@@ -100,6 +105,15 @@
       <xsl:text> </xsl:text>
     </xsl:if>
   </xsl:template>
+
+  <!-- TODO: This is currently converted as bold - is that always desired?
+  <xsl:template match="replaceable">
+    <xsl:choose>
+      <xsl:when test="parent::literal">__<xsl:apply-templates />__</xsl:when>
+      <xsl:otherwise>__++<xsl:apply-templates />++__</xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+  -->
   
   <!-- ===================================================================== -->
   <!-- Filenames                                                             -->
