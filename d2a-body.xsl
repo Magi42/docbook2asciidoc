@@ -86,15 +86,18 @@
       <xsl:value-of select="starts-with(., ' ') or starts-with(., '&#xa;') or starts-with(., '&#x9;')"/>
     </xsl:variable>
 
+    <!-- We do not want a space after a comment block, which has a newline -->
+    <xsl:variable name="preceded-by-comment-node"
+                  select="exists(preceding-sibling::comment()[generate-id(following-sibling::text()[1]) = generate-id(current())])"/>
+
     <!-- Add a space if
          1) there was one originally
          2) there's a newline after a sibling; a newline after an inline element;
-            but not if the element was an indexterm, which will have newline
-         Problem: Extra newline is also added after an inline comment,
-                  which will cause trouble at the beginning of a line.
-                  I have no idea how to detect if the preceding node is a comment.
+            but not if the element was an indexterm, which will have newline,
+            nor immediately after a comment node.
      -->
-    <xsl:if test="$starts-with-whitespace='true' and exists(preceding-sibling::*[1]/self::element()) and empty(preceding-sibling::*[1]/self::indexterm)">
+
+    <xsl:if test="$starts-with-whitespace='true' and exists(preceding-sibling::*[1]/self::element()) and empty(preceding-sibling::*[1]/self::indexterm) and not($preceded-by-comment-node)">
       <xsl:text> </xsl:text>
     </xsl:if>
 

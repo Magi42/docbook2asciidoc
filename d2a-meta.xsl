@@ -22,14 +22,22 @@
     </xsl:if>
 
     <xsl:choose>
+      <!-- If there is a newline, use block comment -->
       <xsl:when test="contains(., '&#xa;')">
         <xsl:text>////&#xa;</xsl:text>
         <xsl:value-of select="normalize-space(.)"/>
         <xsl:text>&#xa;////&#xa;</xsl:text>
       </xsl:when>
 
+      <!-- This is for a workaround to terminate comments that start in listings to fix syntax highlighting in XEmacs -->
+      <xsl:when test="normalize-space(.) = '*/'">
+        <!-- Just remove such comments which have no meaning in AsciiDoc -->
+      </xsl:when>
+
+      <!-- If no newline, can use single-line comment -->
       <xsl:otherwise>
-        <xsl:text>// </xsl:text>
+        <!-- TODO May not have space after the //, because it causes crazy newline behaviour in rewrapping -->
+        <xsl:text>//</xsl:text>
         <xsl:value-of select="normalize-space(.)"/>
         <xsl:text>&#xa;</xsl:text>
       </xsl:otherwise>

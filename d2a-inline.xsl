@@ -57,12 +57,9 @@
     <xsl:variable name="content">
       <xsl:apply-templates />
     </xsl:variable>
-    <xsl:value-of select="$content"/>
 
-    <!-- Often the emphasized text ends with '*', which would lead to invalid formatting, so we add '**' to make it '***' -->
-    <xsl:if test="ends-with($content, '*')">
-      <xsl:text>**</xsl:text>
-    </xsl:if>
+    <!-- Often the emphasized text contains '*', which needs to be quoted -->
+    <xsl:value-of select="replace($content, '\*', '++*++')"/>
 
     <xsl:text>**</xsl:text>
   </xsl:template>
@@ -106,15 +103,6 @@
     </xsl:if>
   </xsl:template>
 
-  <!-- TODO: This is currently converted as bold - is that always desired?
-  <xsl:template match="replaceable">
-    <xsl:choose>
-      <xsl:when test="parent::literal">__<xsl:apply-templates />__</xsl:when>
-      <xsl:otherwise>__++<xsl:apply-templates />++__</xsl:otherwise>
-    </xsl:choose>
-  </xsl:template>
-  -->
-  
   <!-- ===================================================================== -->
   <!-- Filenames                                                             -->
   <!-- ===================================================================== -->
@@ -192,6 +180,7 @@
 
   <xsl:template match="literal | code">
     <xsl:text>++</xsl:text>
+    <!-- TODO Why is this done? Doesn't seem to work in AsciiDoctor -->
     <xsl:if test='contains(., "+") or contains(., "&apos;") or contains(., "_")'>
       <xsl:text>$$</xsl:text>
     </xsl:if>
@@ -206,9 +195,9 @@
   <xsl:template match="literal/text()">
     <!-- Literal text often contains quoted elements -->
     <xsl:variable name="unquoted">
-      <xsl:value-of select="replace(replace(replace(., '&lt;', '&#xE801;', 'm'), '&gt;', '&#xE802;', 'm'), '&amp;', '&#xE803;', 'm')" disable-output-escaping="yes"/>
+      <xsl:value-of select="replace(replace(replace(., '&lt;', '&#xE801;', 'm'), '&gt;', '&#xE802;', 'm'), '&amp;', '&#xE803;', 'm')"/>
     </xsl:variable>
-    <xsl:value-of select="replace(replace(replace($unquoted, '\n\s+', ' ', 'm'), 'C\+\+', '\$\$C++\$\$', 'm'), '([\[\]\*\^~])', '\\$1', 'm')" disable-output-escaping="yes"/>
+    <xsl:value-of select="replace($unquoted, '\n\s+', ' ', 'm')"/>
   </xsl:template>
   
   <xsl:template match="userinput">**`<xsl:apply-templates />`**</xsl:template>

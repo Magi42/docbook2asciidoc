@@ -298,20 +298,19 @@
       <!-- No child co elements -->
       <xsl:otherwise>
         <xsl:choose>
-          <!-- Use passthrough macro when code block has inlines -->
           <xsl:when test="*[not(self::indexterm)]">
             <xsl:if test="ancestor::listitem and preceding-sibling::element()">
               <xsl:text>&#xa;+&#xa;</xsl:text>
             </xsl:if>
-            <xsl:text>[subs="verbatim,macros"]</xsl:text>
+            <xsl:text>[subs="normal"]</xsl:text>
             <xsl:value-of select="util:carriage-returns(1)"/>
-            <xsl:text>----&#xa;pass:quotes[</xsl:text>
+            <xsl:text>----&#xa;</xsl:text>
 
             <!-- Note that we're not using the 'code' mode here, as
                  we want to process the inlines normally. -->
             <xsl:apply-templates/>
 
-            <xsl:text>]&#xa;----&#xa;</xsl:text>
+            <xsl:text>&#xa;----&#xa;</xsl:text>
           </xsl:when>
 
           <!-- Use Docbook passthrough when code block contains indexterms and you want to keep them -->
