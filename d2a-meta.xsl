@@ -24,12 +24,15 @@
     <xsl:choose>
       <!-- If there is a newline, use block comment -->
       <xsl:when test="contains(., '&#xa;')">
+        <!-- TODO This should be somehow conditional -->
+        <xsl:text>&#xa;</xsl:text>
+
         <xsl:text>////&#xa;</xsl:text>
         <xsl:value-of select="normalize-space(.)"/>
         <xsl:text>&#xa;////&#xa;</xsl:text>
       </xsl:when>
 
-      <!-- This is for a workaround to terminate comments that start in listings to fix syntax highlighting in XEmacs -->
+      <!-- Strip out a DocBook workaround to terminate comments that start in listings to fix syntax highlighting in XEmacs -->
       <xsl:when test="normalize-space(.) = '*/'">
         <!-- Just remove such comments which have no meaning in AsciiDoc -->
       </xsl:when>
