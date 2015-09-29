@@ -165,13 +165,39 @@
   <!-- Language Emphasis                                                     -->
   <!-- ===================================================================== -->
 
-  <xsl:template match="classname | methodname | interfacename | package | guibutton | guilabel | parameter">
+  <xsl:template match="classname | methodname | interfacename | package | guibutton | guilabel | parameter | uri ">
+    <xsl:variable name="quote">
+      <xsl:call-template name="generate-proper-quote">
+        <xsl:with-param name="single" select="'#'"/>
+      </xsl:call-template>
+    </xsl:variable>
+
     <xsl:text>[</xsl:text>
     <xsl:value-of select="name()"/>
     <xsl:text>]</xsl:text>
-    <xsl:text>#</xsl:text>
+    <xsl:value-of select="$quote"/>
     <xsl:apply-templates />
-    <xsl:text>#</xsl:text>
+    <xsl:value-of select="$quote"/>
+  </xsl:template>
+
+  <xsl:template name="generate-proper-quote">
+    <xsl:param name="single"/>
+
+    <!-- Double quote needs to be used if the quotes are within a word, that is,
+         the preceding or following character is a certain kind of "word" character. -->
+    <xsl:variable name="previous-text" select="preceding-sibling::text()[generate-id(following-sibling::*[1]) = generate-id(current())][1]"/>
+    <xsl:variable name="previous-char-is-word" select="$previous-text != '' and not(matches($previous-text, '([\.,;:\(\)]|\s)$'))"/>
+    <xsl:variable name="next-text" select="following-sibling::text()[generate-id(preceding-sibling::*[1]) = generate-id(current())][1]"/>
+    <xsl:variable name="next-char-is-word" select="$next-text != '' and not(matches($next-text, '^([\.,;:\(\)]|\s)'))"/>
+
+    <xsl:choose>
+      <xsl:when test="$previous-char-is-word or $next-char-is-word">
+        <xsl:value-of select="concat($single, $single)"/>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:value-of select="$single"/>
+      </xsl:otherwise>
+    </xsl:choose>
   </xsl:template>
 
   <!-- ======================================================================= -->
